@@ -67,16 +67,31 @@ prg608 = r"""
     jump again
 """
 
-prg508 = r"""
+prg508 = prg608
+prg408 = prg608
+prg308 = prg608
+prg208 = prg608
+prg108 = prg608
+
+prg008 = r"""
     @p a! @p @p
         NORTH
         1
         1
+    @p b!
+        io
+\ : ok
+\     @p
+\         2
+\     !b @p
+\         3
+\     !b jump ok
     jump fwd
 : again
     over over . +
 : fwd
-    dup ! jump again
+    dup !
+    jump again
 """
 
 if __name__ == '__main__':
@@ -84,4 +99,9 @@ if __name__ == '__main__':
     g.node['708'].load(prg708)
     g.node['608'].load(prg608)
     g.node['508'].load(prg508)
+    g.node['408'].load(prg408)
+    g.node['308'].load(prg308)
+    g.node['208'].load(prg208)
+    g.node['108'].load(prg108)
+    g.node['008'].load(prg008)
     g.download(sys.argv[1])

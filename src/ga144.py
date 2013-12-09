@@ -86,6 +86,7 @@ class Node():
         self.symbols['EAST'] = self.symbols[e]
         self.symbols['SOUTH'] = self.symbols[s]
         self.symbols['WEST'] = self.symbols[w]
+        self.setpass(0)
 
     def toslot(self, code, slot):
         if (slot == 0) and (code & 3) != 0:
@@ -190,21 +191,20 @@ class Node():
         self.load_pgm = ops
 
     def pump(self, downstream):
-        pgm = self.load_pgm
         r = [self.assemble("call NORTH".split())]
-        if 1 and downstream:
+        if downstream:
             r += [self.assemble("@p a! @p".split()),
                   self.assemble("SOUTH".split()),
                   len(downstream) - 1,
                   self.assemble(["push"]),
                   self.assemble("@p ! unext".split())] + downstream
-        r += [self.assemble("@p a! @p".split()),
-              0,
-              len(pgm) - 1,
-              self.assemble(["push"]),
-              self.assemble("@p !+ unext".split())] + pgm
-        r += [self.assemble("jump 0".split())]
-        print self.name, r
+        if self.load_pgm:
+            r += [self.assemble("@p a! @p".split()),
+                  0,
+                  len(self.load_pgm) - 1,
+                  self.assemble(["push"]),
+                  self.assemble("@p !+ unext".split())] + self.load_pgm
+            r += [self.assemble("jump 0".split())]
         return r
 
 class GA144:
@@ -217,12 +217,15 @@ class GA144:
 
     def bootstream(self):
         r = []
-        if self.node['608'].load_pgm:
-            lp608 = self.node['608'].pump(self.node['508'].pump([]))
-            r += [0x0ae, self.node['708'].symbols['SOUTH'], len(lp608)] + lp608
+        ds = []
+        path = ['608', '508', '408', '308', '208', '108', '008']
+        for n in path[::-1]:
+            ds = self.node[n].pump(ds)
+        r += [0x0ae, self.node['708'].symbols['SOUTH'], len(ds)] + ds
 
         n708 = self.node['708'].load_pgm
         r += [0x000, 0, len(n708)] + n708
+        print 'bootstream is', len(r), 'words'
         return r
 
     def announce(self, msg):
