@@ -189,6 +189,24 @@ class Node():
                     self.lst('%02x:           %s' % (len(ops), ol))
         self.load_pgm = ops
 
+    def pump(self, downstream):
+        pgm = self.load_pgm
+        r = [self.assemble("call NORTH".split())]
+        if 1 and downstream:
+            r += [self.assemble("@p a! @p".split()),
+                  self.assemble("SOUTH".split()),
+                  len(downstream) - 1,
+                  self.assemble(["push"]),
+                  self.assemble("@p ! unext".split())] + downstream
+        r += [self.assemble("@p a! @p".split()),
+              0,
+              len(pgm) - 1,
+              self.assemble(["push"]),
+              self.assemble("@p !+ unext".split())] + pgm
+        r += [self.assemble("jump 0".split())]
+        print self.name, r
+        return r
+
 class GA144:
     def __init__(self):
         self.node = {}
@@ -200,15 +218,8 @@ class GA144:
     def bootstream(self):
         r = []
         if self.node['608'].load_pgm:
-            n608 = self.node['608'].load_pgm
-            lp608 = [
-                self.node['608'].assemble("call -d--".split()),
-                self.node['608'].assemble("@p a! @p".split()),
-                0,
-                len(n608) - 1,
-                self.node['608'].assemble(["push"]),
-                self.node['608'].assemble("@p !+ unext".split())] + n608 + [self.node['608'].assemble("jump 0".split())]
-            r += [0x0ae, self.node['708'].symbols['-d--'], len(lp608)] + lp608
+            lp608 = self.node['608'].pump(self.node['508'].pump([]))
+            r += [0x0ae, self.node['708'].symbols['SOUTH'], len(lp608)] + lp608
 
         n708 = self.node['708'].load_pgm
         r += [0x000, 0, len(n708)] + n708

@@ -58,6 +58,16 @@ prg708 = r"""
 """
 
 prg608 = r"""
+    @p a! @p
+        SOUTH
+        NORTH
+    b!
+: again
+    @ 2* !b
+    jump again
+"""
+
+prg508 = r"""
     @p a! @p @p
         NORTH
         1
@@ -73,4 +83,5 @@ if __name__ == '__main__':
     g = GA144()
     g.node['708'].load(prg708)
     g.node['608'].load(prg608)
+    g.node['508'].load(prg508)
     g.download(sys.argv[1])
