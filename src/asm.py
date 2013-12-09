@@ -94,6 +94,36 @@ prg008 = r"""
     jump again
 """
 
+prg007 = r"""
+    @p a! @p
+        EAST
+        0
+: loop
+    - dup !
+    jump loop
+"""
+
+prg007 = r"""
+    @p b!
+        0x141
+: ok
+    @p
+        0x3ffff
+    !b @p
+        0
+    !b jump ok
+"""
+
+xprg008 = r"""
+    @p a!
+        WEST
+    @p b!
+        NORTH
+: loop
+    @ !b
+    jump loop
+"""
+
 if __name__ == '__main__':
     g = GA144()
     g.node['708'].load(prg708)
@@ -104,4 +134,6 @@ if __name__ == '__main__':
     g.node['208'].load(prg208)
     g.node['108'].load(prg108)
     g.node['008'].load(prg008)
+    g.node['007'].load(prg007)
+    g.node['009'].load(prg007)
     g.download(sys.argv[1])

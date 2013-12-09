@@ -86,7 +86,7 @@ class Node():
         self.symbols['EAST'] = self.symbols[e]
         self.symbols['SOUTH'] = self.symbols[s]
         self.symbols['WEST'] = self.symbols[w]
-        self.setpass(0)
+        self.setpass(1)
 
     def toslot(self, code, slot):
         if (slot == 0) and (code & 3) != 0:
@@ -190,15 +190,25 @@ class Node():
                     self.lst('%02x:           %s' % (len(ops), ol))
         self.load_pgm = ops
 
-    def pump(self, downstream):
-        r = [self.assemble("call NORTH".split())]
-        if downstream:
-            r += [self.assemble("@p a! @p".split()),
-                  self.assemble("SOUTH".split()),
+    def pump(self, path):
+        # print 'pump', self.name
+        r = []
+        if path:
+            next = {
+                'NORTH' : lambda: self.n,
+                'EAST'  : lambda: self.e,
+                'SOUTH' : lambda: self.s,
+                'WEST'  : lambda: self.w}[path[0]]()
+            downstream = next.pump(path[1:])
+            r += [self.assemble("@p dup a! @p".split()),
+                  self.assemble(["call", path[0]]),
                   len(downstream) - 1,
-                  self.assemble(["push"]),
+                  self.assemble("push !".split()),
                   self.assemble("@p ! unext".split())] + downstream
-        if self.load_pgm:
+        # print self.name, self.load_pgm
+        if not self.load_pgm:
+            r += [self.assemble(";".split())]
+        else:
             r += [self.assemble("@p a! @p".split()),
                   0,
                   len(self.load_pgm) - 1,
@@ -215,16 +225,38 @@ class GA144:
                 id = "%d%02d" % (r, c)
                 self.node[id] = Node(id)
 
+        for r in range(7):
+            for c in range(18):
+                id = "%d%02d" % (r, c)
+                self.node[id].n = self.node["%d%02d" % (r + 1, c)]
+        for r in range(1,8):
+            for c in range(18):
+                id = "%d%02d" % (r, c)
+                self.node[id].s = self.node["%d%02d" % (r - 1, c)]
+        for r in range(0,8):
+            for c in range(17):
+                id = "%d%02d" % (r, c)
+                self.node[id].e = self.node["%d%02d" % (r, c + 1)]
+        for r in range(0,8):
+            for c in range(1,18):
+                id = "%d%02d" % (r, c)
+                self.node[id].w = self.node["%d%02d" % (r, c - 1)]
+
     def bootstream(self):
         r = []
-        ds = []
-        path = ['608', '508', '408', '308', '208', '108', '008']
-        for n in path[::-1]:
-            ds = self.node[n].pump(ds)
-        r += [0x0ae, self.node['708'].symbols['SOUTH'], len(ds)] + ds
+        path = ['SOUTH', 'SOUTH', 'SOUTH', 'SOUTH', 'SOUTH', 'SOUTH', 'SOUTH', 'WEST']
+        path = ['SOUTH', 'SOUTH', 'EAST', 'SOUTH', 'WEST', 'SOUTH', 'SOUTH', 'SOUTH', 'SOUTH', 'WEST']
+        s6w = ['SOUTH'] * 6 + ['WEST']
+        n6w = ['NORTH'] * 6 + ['WEST']
+        path = (['EAST'] * 9 + ['SOUTH'] + (s6w + n6w) * 8 +
+            s6w + ['NORTH'] * 7 + ['EAST'] * 7
+        )
+        ds = [self.node['708'].assemble("call EAST".split())] + self.node['709'].pump(path[1:])
+        r += [0x0ae, self.node['708'].symbols['EAST'], len(ds)] + ds
 
         n708 = self.node['708'].load_pgm
         r += [0x000, 0, len(n708)] + n708
+        print 'path', len(path)
         print 'bootstream is', len(r), 'words'
         return r
 
