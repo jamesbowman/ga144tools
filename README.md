@@ -63,6 +63,10 @@ Instruction set notes:
 
   http://www.colorforth.com/etherCode.htm
 
+Booting:
+
+  http://www.forth.org/svfig/kk/11-2013-Shattuck.pdf
+
 Eagle library
 
   http://esaid.free.fr/tutoriel_arrayforth/Ga144_pcb/Ga144/GA144_SRAM_IS2/GA144/
@@ -94,16 +98,12 @@ x         @p      ;
 
 \ double convention is for the lsw to be on top
 
-
-
-
-
-
-
-
-
-
-
+Board:
+  1.8V vccio
+Mandelbrot:
+  480 x 272 x 30 = 255ns per sample, 3.9 MHz
+  Each multiply is 72ns, 256 multiplies, 18432ns
+  So need 72 nodes
 
 
 : dnot    push    -       pop     -

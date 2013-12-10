@@ -1,1 +1,2 @@
-python asm.py
+python asm.py /dev/ttyUSB0
+# python draw.py && qiv out.png
