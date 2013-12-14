@@ -1,0 +1,53 @@
+---------------------------- 708 ----------------------------
+: again
+    jump again
+
+---------------------------- 108 ----------------------------
+
+    @p a!
+      SOUTH
+      
+: loop
+    @p !
+    0x3ffff
+    @p !
+    0x00000
+    jump loop
+
+---------------------------- 008 ----------------------------
+\ copy from NORTH to WEST
+    @p a! @p @p
+    NORTH
+    io
+    r-l-
+    \ io r-l-
+    over b!
+: loop
+    @p !b @
+      0xa
+    over b! !b
+    over b! @p
+      0xf
+    !b jump loop
+
+---------------------------- 007 ----------------------------
+    @p @p
+        EAST
+        data
+    b! a!
+: ok
+    @p push
+    0x3ffff
+    @ !b unext
+    jump ok
+
+---------------------------- 009 ----------------------------
+    @p @p
+        WEST
+        data
+    b! a!
+: ok
+    @p push
+    0x3ffff
+    @ !b unext
+    jump ok

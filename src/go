@@ -1,2 +1,2 @@
-python asm.py /dev/ttyUSB0
+python asm.py /dev/ttyUSB0 ccpu.ga
 # python draw.py && qiv out.png

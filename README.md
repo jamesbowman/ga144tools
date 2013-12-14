@@ -71,6 +71,10 @@ Eagle library
 
   http://esaid.free.fr/tutoriel_arrayforth/Ga144_pcb/Ga144/GA144_SRAM_IS2/GA144/
 
+Datasheets:
+
+  http://www.cypress.com/?docID=45536
+
 1.8V DC-DC: http://www.diodes.com/datasheets/AP6015.pdf
 
 CCPU for GA144
@@ -129,3 +133,6 @@ Mandelbrot:
 00000 Transfer (store) Address
 00007 Transfer Size in words
       Data words
+
+; CPU always executes from SOUTH
+; 

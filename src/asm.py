@@ -126,14 +126,27 @@ xprg008 = r"""
 
 if __name__ == '__main__':
     g = GA144()
-    g.node['708'].load(prg708)
-    g.node['608'].load(prg608)
-    g.node['508'].load(prg508)
-    g.node['408'].load(prg408)
-    g.node['308'].load(prg308)
-    g.node['208'].load(prg208)
-    g.node['108'].load(prg108)
-    g.node['008'].load(prg008)
-    g.node['007'].load(prg007)
-    g.node['009'].load(prg007)
-    g.download(sys.argv[1])
+    if 0:
+        g.node['708'].load(prg708)
+        g.node['608'].load(prg608)
+        g.node['508'].load(prg508)
+        g.node['408'].load(prg408)
+        g.node['308'].load(prg308)
+        g.node['208'].load(prg208)
+        g.node['108'].load(prg108)
+        g.node['008'].load(prg008)
+        g.node['007'].load(prg007)
+        g.node['009'].load(prg007)
+    else:
+        code = {}
+        c = []
+        for l in open(sys.argv[2]):
+            if l[0] == '-':
+                n = l.split()[1]
+                c = []
+                code[n] = c
+            else:
+                c.append(l)
+        for n,c in sorted(code.items()):
+            g.node[n].load("".join(c))
+    g.download(sys.argv[1], 460800)

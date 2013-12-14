@@ -273,10 +273,11 @@ class GA144:
                   ((n >> 10) & 0xff)]
         return "".join([chr(c ^ 0xff) for c in r])
 
-    def download(self, port):
+    def download(self, port, speed):
         import serial
-        ser = serial.Serial(port, 115200)
+        ser = serial.Serial(port, speed)
         ser.write(self.async())
+        ser.flush()
         self.announce("DOWNLOAD COMPLETE")
         while True:
             s = ser.read(4)

@@ -1,0 +1,126 @@
+---------------------------- 708 ----------------------------
+    @p b! @p @p
+    0x15d
+    0x80
+    63
+    push a!
+
+    @p a!
+        SOUTH
+    @p push
+        25
+: dump
+    @
+    call emit18
+    drop next dump
+
+    @p call emit18
+    0x00947
+
+: again
+    jump again
+
+: emit18 ( x -- x)
+    @p call emit
+    0xa5
+    drop call emit
+    call emit
+: emit
+    @p call bit
+    0
+    @p push
+    7
+: bloop
+    dup call bit
+    2/ next bloop
+
+    call bit1
+: bit1
+    @p
+    1
+: bit
+    @p and @p @p
+    1
+    3
+    865 \ 3460 for 115200
+    push or !b
+    unext ;
+
+---------------------------- 608 ----------------------------
+    @p a! @p
+        SOUTH
+        NORTH
+    b!
+: again
+    @ !b
+    jump again
+
+---------------------------- 508 ----------------------------
+    @p a! @p
+        SOUTH
+        NORTH
+    b!
+: again
+    @ !b
+    jump again
+
+---------------------------- 408 ----------------------------
+    @p a! @p
+        SOUTH
+        NORTH
+    b!
+: again
+    @ !b
+    jump again
+
+---------------------------- 308 ----------------------------
+    @p a! @p
+        SOUTH
+        NORTH
+    b!
+: again
+    @ !b
+    jump again
+
+---------------------------- 208 ----------------------------
+    @p a! @p
+        SOUTH
+        NORTH
+    b!
+: again
+    @ !b
+    jump again
+
+---------------------------- 108 ----------------------------
+    @p a! @p
+        SOUTH
+        NORTH
+    b!
+: again
+    @ !b
+    jump again
+
+
+---------------------------- 008 ----------------------------
+    @p a! @p @p
+        NORTH
+        1
+        1
+    @p b!
+        io
+    jump fwd
+: again
+    over over . +
+: fwd
+    dup !
+    jump again
+
+---------------------------- 007 ----------------------------
+    @p b!
+        0x141
+: ok
+    @p
+        0x3ffff
+    !b @p
+        0
+    !b jump ok
