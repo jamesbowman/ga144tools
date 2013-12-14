@@ -77,6 +77,8 @@ Datasheets:
 
 1.8V DC-DC: http://www.diodes.com/datasheets/AP6015.pdf
 
+128Kx16 SRAM: CY62137FV18LL
+
 CCPU for GA144
 
 The gcc target is an 8-register 32-bit CPU "CCPU" with 16 bit instructions.
@@ -88,6 +90,10 @@ Instructions, fetched from SRAM, arrive on 007's parallel bus.
 007 interprets the instruction.
 The 8 registers use 16 cells in 007's RAM.
 
+
+How many multiplications per second?
+  144 * 666e6 / 36 = 2.6 billion
+  650 * 480 = 282 multiplications/pixel
 
 label     slot0   slot1   slot2   slot3
 x!        @p      drop    !p      ;
