@@ -1,3 +1,5 @@
+include(ga144.hdr)
+
 ---------------------------- 708 ----------------------------
     @p b! @p @p
     0x15d
@@ -47,73 +49,22 @@
     unext ;
 
 ---------------------------- 608 ----------------------------
-    @p a! @p
-        SOUTH
-        NORTH
-    b!
-: again
-    @ !b
-    jump again
+WIRE(SOUTH, NORTH)
 
 ---------------------------- 508 ----------------------------
-    @p a! @p
-        SOUTH
-        NORTH
-    b!
-: again
-    @ !b
-    jump again
+WIRE(SOUTH, NORTH)
 
 ---------------------------- 408 ----------------------------
-    @p a! @p
-        SOUTH
-        NORTH
-    b!
-: again
-    @ !b
-    jump again
+WIRE(SOUTH, NORTH)
 
 ---------------------------- 308 ----------------------------
-    @p a! @p
-        SOUTH
-        NORTH
-    b!
-: again
-    @ !b
-    jump again
+WIRE(SOUTH, NORTH)
 
 ---------------------------- 208 ----------------------------
-    @p a! @p
-        SOUTH
-        NORTH
-    b!
-: again
-    @ !b
-    jump again
+WIRE(SOUTH, NORTH)
 
 ---------------------------- 108 ----------------------------
-    @p a! @p
-        SOUTH
-        NORTH
-    b!
-: again
-    @ !b
-    jump again
-
-
-\ ---------------------------- 008 ----------------------------
-\     @p a! @p @p
-\         NORTH
-\         1
-\         1
-\     @p b!
-\         io
-\     jump fwd
-\ : again
-\     over over . +
-\ : fwd
-\     dup !
-\     jump again
+WIRE(SOUTH, NORTH)
 
 ---------------------------- 008 ----------------------------
 \ GPIO 1 is CE

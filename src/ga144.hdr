@@ -1,0 +1,11 @@
+define(WIRE, `
+
+    @p a! @p
+        $1
+        $2
+    b!
+: again
+    @ !b
+    jump again
+
+')

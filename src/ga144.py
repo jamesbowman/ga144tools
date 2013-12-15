@@ -1,6 +1,7 @@
 import sys
 import time
 import struct
+from subprocess import Popen, PIPE
 
 mnemonics = {
     0x00  : ";",
@@ -275,6 +276,21 @@ class GA144:
                   ((n >> 2) & 0xff),
                   ((n >> 10) & 0xff)]
         return "".join([chr(c ^ 0xff) for c in r])
+
+    def loadprogram(self, sourcefile):
+        code = {}
+        c = []
+        p1 = Popen(["m4", sourcefile], stdout = PIPE)
+        for l in p1.stdout:
+        # for l in open(sourcefile):
+            if l[0] == '-':
+                n = l.split()[1]
+                c = []
+                code[n] = c
+            else:
+                c.append(l)
+        for n,c in sorted(code.items()):
+            self.node[n].load("".join(c))
 
     def download(self, port, speed, listen = True):
         import serial
