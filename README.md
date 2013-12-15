@@ -78,6 +78,7 @@ Datasheets:
 1.8V DC-DC: http://www.diodes.com/datasheets/AP6015.pdf
 
 128Kx16 SRAM: CY62137FV18LL
+256Kx16 SRAM: CY62147EV18
 
 CCPU for GA144
 

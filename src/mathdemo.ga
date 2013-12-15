@@ -101,18 +101,40 @@
     jump again
 
 
+\ ---------------------------- 008 ----------------------------
+\     @p a! @p @p
+\         NORTH
+\         1
+\         1
+\     @p b!
+\         io
+\     jump fwd
+\ : again
+\     over over . +
+\ : fwd
+\     dup !
+\     jump again
+
 ---------------------------- 008 ----------------------------
-    @p a! @p @p
+    @p a!
         NORTH
-        1
-        1
-    @p b!
-        io
-    jump fwd
+    @p @p @p @p
+        100
+        200
+        300
+        400
+    @p @p @p @p
+        500
+        600
+        700
+        800
+    @p
+        100
+    push push push
+    push push push
+    push push push
 : again
-    over over . +
-: fwd
-    dup !
+    pop !
     jump again
 
 ---------------------------- 007 ----------------------------

@@ -84,93 +84,78 @@
 
 ---------------------------- 208 ----------------------------
     @p a! @p
-        WEST
-        NORTH
-    b!
-: again
-    @ !b
-    jump again
-
----------------------------- 207 ----------------------------
-    @p a! @p
-        SOUTH
-        EAST
-    b!
-: again
-    @ !b
-    jump again
-
----------------------------- 107 ----------------------------
-\ This is the VM
-
-    @p a! @p
         SOUTH
         NORTH
     b!
 : again
-    @ dup
-    @p or
-      6
-    if skip
-    drop !b
-    jump again
-: skip
-    . . . .
-    . . . .
-    . . . .
-    . . . .
-    . . . .
-    @p a! @p
-      EAST
-      0
-    ! @p a!
-      SOUTH
+    @ !b
     jump again
 
 ---------------------------- 108 ----------------------------
     @p a! @p
-        WEST
         SOUTH
+        NORTH
     b!
 : again
     @ !b
     jump again
 
+
+\ ---------------------------- 008 ----------------------------
+\     @p a! @p @p
+\         NORTH
+\         1
+\         1
+\     @p b!
+\         io
+\     jump fwd
+\ : again
+\     over over . +
+\ : fwd
+\     dup !
+\     jump again
+
 ---------------------------- 008 ----------------------------
+\ GPIO 1 is CE
+\ GPIO 3 is WE
+
     @p a! @p
       io
       0b100000000000101110
     !
     @p
-    0
-: loop
-    @p a! dup
+      0
+: again
+    @p a!
       EAST
-    ! @p . +
-      1
-    @b @p and
-      0x02000  \ Dw is one if 108 is writing
-    if nothing
-      @p a! @
-        NORTH 
-      jump loop
-: nothing
-    drop
-    @p a! @p
+    dup !
+    . . . .
+    . . . .
+    . . . .
+    . . . .
+    . . . .
+    . . . .
+    @p a!
       WEST
-      @ !b . .
-    ! jump loop
+    dup ! @
+    @p a! !
+      NORTH
+    @p . +
+      1
+    jump again
 
 ---------------------------- 007 ----------------------------
     @p a! @p
       io
       0x0000
     !
-    @p b! @p
-      NORTH
+    @p @p
+      EAST
       data
-    a!
-    jump EAST
+    b! a!
+: ok
+    @ @b !
+    jump ok
 
 ---------------------------- 009 ----------------------------
     @p a! @p

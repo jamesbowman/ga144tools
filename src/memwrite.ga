@@ -84,93 +84,80 @@
 
 ---------------------------- 208 ----------------------------
     @p a! @p
-        WEST
-        NORTH
-    b!
-: again
-    @ !b
-    jump again
-
----------------------------- 207 ----------------------------
-    @p a! @p
-        SOUTH
-        EAST
-    b!
-: again
-    @ !b
-    jump again
-
----------------------------- 107 ----------------------------
-\ This is the VM
-
-    @p a! @p
         SOUTH
         NORTH
     b!
 : again
-    @ dup
-    @p or
-      6
-    if skip
-    drop !b
-    jump again
-: skip
-    . . . .
-    . . . .
-    . . . .
-    . . . .
-    . . . .
-    @p a! @p
-      EAST
-      0
-    ! @p a!
-      SOUTH
+    @ !b
     jump again
 
 ---------------------------- 108 ----------------------------
     @p a! @p
-        WEST
         SOUTH
+        NORTH
     b!
 : again
     @ !b
     jump again
 
+
 ---------------------------- 008 ----------------------------
+\ GPIO 1 is CE
+\ GPIO 3 is WE
+
     @p a! @p
       io
       0b100000000000101110
     !
-    @p
-    0
-: loop
-    @p a! dup
-      EAST
-    ! @p . +
-      1
-    @b @p and
-      0x02000  \ Dw is one if 108 is writing
-    if nothing
-      @p a! @
-        NORTH 
-      jump loop
-: nothing
-    drop
+: start
+    call ramblk
+    3
+    1000
+    1001
+    1002
+    1003
+
+: again
     @p a! @p
+      NORTH
+      34
+    !
+    jump start
+: ramblk
+    pop a! @+
+    push @p
+    0
+: copy
+    @+ over
+    call ramwrite
+    @p . +
+      1
+    next copy
+    drop
+    a push ;
+: ramwrite \ ( val addr -- )
+    @p b! !b
+      EAST
+    @p b! !b
       WEST
-      @ !b . .
-    ! jump loop
+    @p b! @p @p
+      io
+      0b100000000000101110
+      0b100000000000101010
+    call !bdelay
+: !bdelay
+    !b @p push
+      26
+    unext ;
 
 ---------------------------- 007 ----------------------------
     @p a! @p
-      io
-      0x0000
-    !
-    @p b! @p
-      NORTH
+      EAST
       data
-    a!
-    jump EAST
+    b!
+: ok
+    @ !b
+    jump ok
 
 ---------------------------- 009 ----------------------------
     @p a! @p
