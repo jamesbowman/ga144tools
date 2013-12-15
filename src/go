@@ -1,4 +1,4 @@
-python asm.py /dev/ttyUSB0 memwrite.ga
-# python asm.py /dev/ttyUSB0 memread.ga
-python asm.py /dev/ttyUSB0 ccpu.ga
+python memload.py /dev/ttyUSB0 || exit
+python asm.py /dev/ttyUSB0 memread.ga
+# python asm.py /dev/ttyUSB0 ccpu.ga
 # python draw.py && qiv out.png

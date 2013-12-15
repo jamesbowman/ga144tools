@@ -257,8 +257,11 @@ class GA144:
         n708 = self.node['708'].load_pgm
         r += [0x000, 0, len(n708)] + n708
         print 'path', len(path)
+        r += self.poststream
         print 'bootstream is', len(r), 'words'
         return r
+
+    poststream = []
 
     def announce(self, msg):
         print ("  " + msg + "  ").center(40, "-")
@@ -273,13 +276,15 @@ class GA144:
                   ((n >> 10) & 0xff)]
         return "".join([chr(c ^ 0xff) for c in r])
 
-    def download(self, port, speed):
+    def download(self, port, speed, listen = True):
         import serial
         ser = serial.Serial(port, speed)
         ser.write(self.async())
         ser.flush()
         self.announce("DOWNLOAD COMPLETE")
-        while True:
+        if not listen:
+            time.sleep(0.1)
+        while listen:
             s = ser.read(4)
             (v, ) = struct.unpack("<I", s)
             if (v & 0xff) == 0xa5:
