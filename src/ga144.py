@@ -127,8 +127,11 @@ class Node():
     def bad_dest_1(self, dest, dm):
         return dest & ~dm
 
+    def is_literal(self, sops):
+        return len(sops) == 1 and sops[0] not in opcodes
+
     def assemble(self, sops):
-        if len(sops) == 1 and sops[0] not in opcodes:
+        if self.is_literal(sops):
             return self.term(sops[0])
         mask = 0
         for slot,mnem in zip((3, 2, 1, 0), sops + [".", ".", "."]) :

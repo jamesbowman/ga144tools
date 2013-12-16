@@ -1,5 +1,5 @@
 import sys
-from ga144 import GA144
+from ga144 import GA144, Illegal
 import array
 
 if __name__ == '__main__':
@@ -10,8 +10,16 @@ if __name__ == '__main__':
     print n.assemble("call EAST".split())
     pgm = []
     for i,l in enumerate(open(sys.argv[1])):
-        l = l[:-1]
-        bin = n.assemble(l.split())
-        print "%04x:  %05x  %s" % (i, bin, l)
-        pgm.append(bin & 0xffff)
+        if '#' in l:
+            l = l[:l.index('#')]
+        else:
+            l = l[:-1]
+        l = l.strip().split()
+        if l:
+            bin = n.assemble(l)
+            if not n.is_literal(l):
+                if (bin >> 16) != 0x2:
+                    raise Illegal, 'Illegal op "%s" for slot3' % l[0]
+            print "%04x:  %05x  %s" % (i, bin, l)
+            pgm.append(bin & 0xffff)
     open("bin", "wb").write(array.array('H', pgm).tostring())

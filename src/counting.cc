@@ -1,11 +1,16 @@
+# Legal instructions for slot3:
+#     over a dup pop b! a! . push
+
+  . -
   . @p b!
-    NORTH
-  . @p . +
-    1
-  . dup !b
+    EAST
   . @p a!
-      EAST
-  dup dup or .
-  . !
+    NORTH
+  . call bump
+  . dup !
+  . call goto
+  1
+  . call bump
   . . . .
+  . -
   . . . .

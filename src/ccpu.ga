@@ -48,16 +48,26 @@ WIRE(SOUTH, EAST)
     ! @p a!
       SOUTH
     jump again
+: bump
+  @p . + ;
+    1
+: goto
+  pop a! @
+  !b a push ;
 
 ---------------------------- 108 ----------------------------
     @p a! @p
         WEST
         SOUTH
     b!
+    @p dup dup
+      0xffff
+    dup dup dup
+    dup dup dup
+    dup 
 : again
-    @ !b
+    @ and !b
     jump again
-
 
 ---------------------------- 007 ----------------------------
     @p a! @p

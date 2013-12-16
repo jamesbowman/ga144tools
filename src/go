@@ -1,5 +1,5 @@
 # python asm.py /dev/ttyUSB0 memwrite.ga
-python ccasm.py counting.cc || exit
+python ccasm.py counting.cc > lst || exit
 python memload.py /dev/ttyUSB0 bin || exit
 # python asm.py /dev/ttyUSB0 memread.ga
 python asm.py /dev/ttyUSB0 ccpu.ga
