@@ -309,5 +309,9 @@ class GA144:
             if (v & 0xff) == 0xa5:
                 v >>= 8
                 print "0x%05x  %d" % (v & 0x3ffff, v & 0x3ffff)
+                if (v & 0xffff) == 0x1111:
+                    t0 = time.time()
+                if (v & 0xffff) == 0x2222:
+                    print 'took', time.time() - t0
                 if v == 0x00947:
                     return
