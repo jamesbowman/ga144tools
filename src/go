@@ -1,6 +1,10 @@
-# python asm.py /dev/ttyUSB2 mathdemo.ga ; exit
+PORT=/dev/tty.usbserial-000013FA
 
-# python asm.py /dev/ttyUSB0 memwrite.ga
+# python asm.py $PORT helloworld.ga ; exit
+# python asm.py $PORT fibonacci.ga ; exit
+python asm.py $PORT mathdemo.ga ; exit
+
+# python asm.py $PORT memwrite.ga
 
 # python ccasm.py counting.cc > lst || exit
 # exit
@@ -8,4 +12,4 @@
 # python asm.py /dev/ttyUSB0 ccpu.ga
 
 # python asm.py /dev/ttyUSB0 memread.ga
-python draw.py && qiv out.png
+# python draw.py && qiv out.png

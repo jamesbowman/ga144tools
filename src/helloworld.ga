@@ -3,11 +3,9 @@ include(ga144.hdr)
 include(708out.hdr)
 
 ---------------------------- 608 ----------------------------
-    @p a! @p @p
-        NORTH
-        3
-        1
+    @p b!
+      NORTH
 : again
-    over over . +
-    dup !
-    jump again
+      @p !b
+        0x1a144
+      jump again
