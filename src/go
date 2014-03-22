@@ -1,10 +1,11 @@
-# python asm.py /dev/ttyUSB0 mathdemo.ga ; exit
+# python asm.py /dev/ttyUSB2 mathdemo.ga ; exit
 
 # python asm.py /dev/ttyUSB0 memwrite.ga
 
-python ccasm.py counting.cc > lst || exit
-python memload.py /dev/ttyUSB0 bin || exit
-python asm.py /dev/ttyUSB0 ccpu.ga
+# python ccasm.py counting.cc > lst || exit
+# exit
+# python memload.py /dev/ttyUSB0 bin || exit
+# python asm.py /dev/ttyUSB0 ccpu.ga
 
 # python asm.py /dev/ttyUSB0 memread.ga
-# python draw.py && qiv out.png
+python draw.py && qiv out.png

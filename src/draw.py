@@ -1,10 +1,11 @@
 import math
 import cairo
 
-class Viz144:
-    def __init__(self):
+class Viz:
+    def __init__(self, hot = {}):
         self.surface = cairo.ImageSurface(cairo.FORMAT_RGB24, 1280, 720)
         self.ctx = cairo.Context(self.surface)
+        self.hot = hot
 
     def rect(self, x, y, w, h):
         ctx = self.ctx
@@ -51,16 +52,22 @@ class Viz144:
         ctx.select_font_face("helvetica")
         ctx.set_font_size(20)
 
-        ctx.set_source_rgb(0, .1, .4)
         for r in range(8):
             for c in range(18):
-                self.cell(r, c, "%d%02d" % (r, c))
+                label = "%d%02d" % (r, c)
+                if label in self.hot:
+                    ctx.set_source_rgb(0, .3, .1)
+                else:
+                    ctx.set_source_rgb(0, .0, .1)
+                self.cell(r, c, label)
 
-        ctx.set_source_rgb(1, 1, 1)
-        ctx.move_to(*self.center(7, 8))
-        ctx.line_to(*self.center(7, 9))
-        ctx.stroke()
+        if 0:
+            ctx.set_source_rgb(1, 1, 1)
+            ctx.move_to(*self.center(7, 8))
+            ctx.line_to(*self.center(7, 9))
+            ctx.stroke()
         self.surface.write_to_png(pngfile)
 
-g = Viz144()
-g.render("out.png")
+if __name__ == '__main__':
+    g = Viz()
+    g.render("out.png")

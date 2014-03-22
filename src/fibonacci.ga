@@ -20,13 +20,33 @@ WIRE(SOUTH, NORTH)
 ---------------------------- 108 ----------------------------
 WIRE(SOUTH, NORTH)
 
+
 ---------------------------- 008 ----------------------------
-\ Counting
-    @p b! @p @p
-      NORTH
-      1
-      100
+    @p a! @p @p
+        NORTH
+        1
+        1
 : again
-      over +
-      dup !b
-      jump again
+    over over . +
+    dup !
+    jump again
+
+\ ---------------------------- 008 ----------------------------
+\ \ Counting
+\     @p b!
+\       NORTH
+\     @p
+\       100
+\ : again
+\       call  bump
+\         3
+\       dup !b
+\       jump again
+\ 
+\ : 1+
+\       @p + . ;
+\         1
+\ 
+\ : bump
+\       pop a! @+
+\       a push + ;

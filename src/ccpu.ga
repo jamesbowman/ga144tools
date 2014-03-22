@@ -40,40 +40,82 @@ WIRE(SOUTH, EAST)
     0xe00e
     0xf00f
 
-: goto
-  pop a! @
-  a push !b ;
+\ : goto
+\   pop a! @
+\   a push !b ;
+\ 
+\ : reg
+\   pop a! @+
+\   a push
+\   @p and a!
+\     15
+\   @ ;
+\ : emit
+\   @p a! ! ;
+\     NORTH
+\ : imm
+\   pop a! @+
+\   @+ a push
+\   a!  ! ;
+\ : dec
+\   pop a! @+
+\   a push a!
+\   @ @p . +
+\     -1
+\   ! ;
+\ : jnz
+\   pop a! @+
+\   @+ a push
+\   a!
+\   @ 2* 2*
+\   if quit
+\     drop !b ;
+\ : quit
+\   ;
 
-: reg
-  pop a! @+
-  a push
-  @p and a!
-    15
-  @ ;
-: emit
-  @p a! ! ;
-    NORTH
-: imm
-  pop a! @+
-  @+ a push
-  a!  ! ;
-: dec
-  pop a! @+
-  a push a!
-  @ @p . +
-    -1
-  ! ;
-: jnz
-  pop a! @+
-  @+ a push
-  a!
-  @ 2* 2*
-  if quit
-    drop !b ;
-: quit
-  ;
+: generic
+  call  lo4
+  a! call  lo4
+  @p and push 
+  63
+  @ push a!
+  @ pop ;
 
-pop dup push
+: lo4
+  dup 2/ push @p
+  15
+  and pop 2/
+  2/ 2/ ;
+
+\ called with ( dst src ) and A pointing to dst
+: _sub
+  - @p . +
+    1
+: _add
+  + ! ;
+: _and
+  and ! ;
+: _xor
+  or ! ;
+: _or
+  over - and
+  or ! ;
+: _lsh
+  push
+  2* unext ! ;
+: _rsh
+  push 2* 2*
+  2/ unext ! ;
+\ memory read, 8,16
+\ memory write: 8,16
+\ save, restore
+\ call,return
+\ compare, branch
+
+\ Memory operations:
+\   set pc
+\   write pc, set pc
+\   
 
 ---------------------------- 108 ----------------------------
 \ Wire node. Copy from WEST to SOUTH, anding with 0xffff
