@@ -20,6 +20,7 @@ It writes the integer sequence on the serial port:
   
 Another example, 
 [mathdemo.ga](src/mathdemo.ga) counts up from 100, on node 008.
+Nodes 108 through 608 are wire nodes; they just carry data upwards towards node 708.
 
 ![Alt text](src/pictures/mathdemo.ga.png)
 
