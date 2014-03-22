@@ -41,7 +41,7 @@ class Viz:
         ctx.stroke()
 
         (_, _, tw, th, _, _) = ctx.text_extents(label)
-        ctx.set_source_rgba(1, 1, 1, 0.5)
+        ctx.set_source_rgba(1, 1, 1, 0.8)
         ctx.move_to(x + ((w - tw) / 2), y + ((h + th) / 2))
         ctx.show_text(label)
         ctx.restore()

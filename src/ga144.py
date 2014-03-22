@@ -164,6 +164,9 @@ class Node():
 
     load_pgm = None
 
+    def isactive(self):
+        return self.load_pgm is not None
+
     def load(self, prg):
         self.log('---------- ' + self.name + ' ----------')
         lines = [l for l in prg.split("\n") if l]
@@ -294,6 +297,9 @@ class GA144:
                 c.append(l)
         for n,c in sorted(code.items()):
             self.node[n].load("".join(c))
+
+    def active(self):
+        return [id for (id,n) in self.node.items() if n.isactive()]
 
     def download(self, port, speed, listen = True):
         import serial
