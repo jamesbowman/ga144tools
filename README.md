@@ -1,55 +1,3 @@
-0
-0
-0
-0
-0
-0
-0
-0
-: fetch   call    ask
-          call    -d--
-          jmp     fetch
-: ask     @b      dup     !       @p
-          2
-          .       +       !b      ;
-: reg16   call    lit16
-: rfetch  a       push    a!      @
-          pop     a!      ;
-: lit16   call    ask
-          @       ;
-: setpc   call    lit16
-          !b      ;
-: /8reg   2/      2/      2/      .
-: &reg    p@      and     ;
-          7
-: binop   ( -- dst src1 src2 )
-          call    ask
-          @b      dup     call    &reg
-          push    dup     call    /8reg
-          push    call    /8reg
-          pop     call    rfetch
-          pop     jump    rfetch
-: jsr     call    ask
-          @b      call    sp      .
-          dup     push    -       !
-          !       pop     p@      .
-          -2
-          jmp     sp+
-: ret     p@      call    sp
-          2
-          dup     !       call    sp+
-          @       !b      ;
-: sp      p@      drop    p@      ;
-: sp+     +       p!      ;
-0
-
-; a points to IP
-; b points to memory interface
-
-
-: !16     -       !       !       ;
-: @16     !       @       ;
-
 ccpu - C/C++ for GA144
 ======================
 
@@ -110,36 +58,7 @@ Mandelbrot:
   Each multiply is 72ns, 256 multiplies, 18432ns
   So need 72 nodes
 
-
-: dnot    push    -       pop     -
-          ;
-: d2*     dup     +       push    dup
-          +       pop     ;
-: d2/     2/      2*      a!      +*
-          a       ;
-: dxor    a!      push    a       or
-          a!      pop     or      a
-          ;
-: dand    a!      push    a       and
-          a!      pop     and     a
-          ;
-: d+      a!      push    a       .
-          +       a!      pop     .
-          +       a       ;
-: reg32   call    ask
-          drop    @       2*      a!
-          @+      @       ;
-: lit32   call    ask
-          drop    @
-          call    ask
-          drop    @       ;
-
-
-
 00000 Completion (jump) Address
 00000 Transfer (store) Address
 00007 Transfer Size in words
       Data words
-
-; CPU always executes from SOUTH
-; 
