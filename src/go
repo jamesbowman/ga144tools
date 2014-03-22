@@ -1,8 +1,8 @@
 PORT=/dev/tty.usbserial-000013FA
 
 # python asm.py $PORT helloworld.ga ; exit
-# python asm.py $PORT fibonacci.ga ; exit
-python asm.py $PORT mathdemo.ga ; exit
+python asm.py $PORT fibonacci.ga ; exit
+# python asm.py $PORT mathdemo.ga ; exit
 
 # python asm.py $PORT memwrite.ga
 
