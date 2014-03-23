@@ -1,5 +1,5 @@
-ccpu - C/C++ for GA144
-======================
+ga144tools - Python toolchain for GA144
+=======================================
 
 This package is an alternate toolchain for GA144 CPUs. The tools are all Python-based,
 and the only additional requirement is PySerial.
