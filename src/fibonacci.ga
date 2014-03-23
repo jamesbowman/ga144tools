@@ -6,8 +6,8 @@ include(708out.hdr)
     @p a! @p @p
         NORTH
         1
-        1
+        0
 : again
-    over over . +
-    dup !
-    jump again
+    over over . +     \ next fibonacci term
+    dup !             \ send to NORTH
+    jump again        \ forever
