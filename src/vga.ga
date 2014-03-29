@@ -1,0 +1,110 @@
+include(ga144.hdr)
+
+include(708out.hdr)
+
+\ relevant output pins:
+
+\ GND     J27.1
+\ 709.ao  J27.2
+\ 713.ao  J27.5
+\ 717.ao  J27.7
+
+\ 617.ao  J21.2
+\ 517.17  J21.3     
+\ 417.17  J21.4     HSYNC (yellow)
+\ 317.17  J21.5     VSYNC (red)
+\ 117.ao  J21.7
+
+---------------------------- 608 ----------------------------
+    @p a! @p @p
+        NORTH
+        1
+        1
+    over over . +
+    dup !
+: again
+    jump again
+
+---------------------------- 717 ----------------------------
+\     @p a! @p
+\         io
+\         0
+\ : again
+\     @p . +
+\       1
+\     dup @p or
+\       0x155
+\     !  jump again
+
+      @p a!
+        SOUTH
+      @p b!
+        io
+: again
+      @p @ or
+        0x155
+      b!  jump again
+
+---------------------------- 617 ----------------------------
+WIRE(SOUTH, NORTH)
+
+---------------------------- 517 ----------------------------
+WIRE(SOUTH, NORTH)
+
+---------------------------- 417 ----------------------------
+
+\ http://tinyvga.com/vga-timing/640x480@60Hz
+
+: again
+    @p call vsync   \ sync
+      0x20000
+    @p call  lines
+      2
+    @p call vsync
+      0x30000
+    @p call  lines  \ back porch
+      33
+    @p call  lines  \ frame
+      480
+    @p call  lines  \ front porch
+      10
+    jump again
+: lines
+    push
+: lineloop
+    @p a!
+      NORTH
+    @p b! @p @p
+      io
+      0x20000
+      0x30000
+    dup !b    \ high
+    @p call delay
+      int(0.6355/.00248)
+    over !b   \ low
+    @p call delay
+      int(3.8133/.00248)
+    dup !b    \ high
+    @p call delay
+      int((25.422)/.00248)
+    @p call delay
+      int((1.906)/.00248)
+
+\    dup !b    \ high
+\    @p call delay
+\      int(27.96/.00248)
+\    over !b    \ low
+\    @p call delay
+\      int(3.8133/.00248)
+
+    next lineloop
+    ;
+: delay
+    push
+    unext ;
+
+: vsync
+    @p a! ! ;
+      SOUTH
+---------------------------- 317 ----------------------------
+WIRE(NORTH, io)
