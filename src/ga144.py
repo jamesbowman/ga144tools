@@ -120,6 +120,7 @@ class Node():
         if n in self.symbols:
             return self.symbols[n]
         else:
+            return eval(n)
             return int(n, 0)
 
     def bad_dest_0(self, dest, dm):
