@@ -144,15 +144,15 @@ class Node():
             return eval(n)
             return int(n, 0)
 
-    def bad_dest_0(self, dest, dm):
+    def bad_dest_0(self, pc, dest, dm):
         return False
-    def bad_dest_1(self, dest, dm):
-        return dest & ~dm
+    def bad_dest_1(self, pc, dest, dm):
+        return (dest & ~dm) != (pc & ~dm)
 
     def is_literal(self, sops):
         return len(sops) == 1 and sops[0] not in opcodes
 
-    def assemble(self, sops):
+    def assemble(self, sops, pc = None):
         if self.is_literal(sops):
             return self.term(sops[0])
         mask = 0
@@ -163,8 +163,10 @@ class Node():
                 if not slot in (3, 2, 1):
                     raise Illegal, "Illegal jump for slot %d" % slot
                 dm = { 3: 0x3ff, 2: 0xff, 1: 0x7 }[slot]
+                if pc is None and (dm == 0x7):
+                    raise Illegal, "illegal jump to %#x for port execution" % (dest)
                 dest = self.term(sops[-1])
-                if self.bad_dest(dest, dm):
+                if pc is not None and self.bad_dest(pc, dest, dm):
                     raise Illegal, "jump to %#x out of range for slot %d" % (dest, slot)
                 mask |= (dm & dest)
                 break
@@ -208,7 +210,7 @@ class Node():
                         self.lst('%02x:           %s' % (len(ops), ol))
                     else:
                         try:
-                            opcode = self.assemble(s)
+                            opcode = self.assemble(s, pc = len(ops))
                         except Illegal, msg:
                             print l
                             print msg
