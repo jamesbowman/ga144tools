@@ -102,13 +102,15 @@ WIRE(SOUTH, EAST_WEST)
       io
       0x20000
       0x30000
-    dup !b    \ high
+
+
+    over !b                 \ vsync low
     @p call delay
-      int(0.6355/.00248)
-    over !b   \ low
+      int(3.8133/.00248)    \ sync pulse
+    dup !b                  \ vsync high
+
     @p call delay
-      int(3.8133/.00248)
-    dup !b    \ high
+      int((1.906)/.00248)   \ back porch
 
 \   @p call delay
 \     int((25.422)/.00248)
@@ -119,16 +121,15 @@ WIRE(SOUTH, EAST_WEST)
       NORTH
     @p push
       640-1
-: active
+: display
       . . @ .
       . . !b .
       . . . .
-      . next active
-    @p !b
-      0
+      . next display
+    dup or !b
 
     @p call delay
-      int((1.906)/.00248)
+      int(0.6355/.00248)    \ front porch
 
 \    dup !b    \ high
 \    @p call delay
@@ -167,10 +168,20 @@ WIRE(NORTH, io)
       63
     dup ! unext
 
+    @p push
+      120-1
+: l0
     @p push @p
-      640*120-1
+      320-1
+      0
+    dup ! unext
+
+    @p push @p
+      320-1
       63|(63<<6)|(63<<12)
     dup ! unext
+
+    next l0
 
     @p push @p
       640*120-1
