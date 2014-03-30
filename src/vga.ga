@@ -103,7 +103,6 @@ WIRE(SOUTH, EAST_WEST)
       0x20000
       0x30000
 
-
     over !b                 \ vsync low
     @p call delay
       int(3.8133/.00248)    \ sync pulse
@@ -163,30 +162,43 @@ WIRE(NORTH, io)
     @p call zeroes
       640*35-1
 
-    @p push @p
-      640*240-1
-      63
-    dup ! unext
+\     @p push @p
+\       640*240-1
+\       63
+\     dup ! unext
+\ 
+\     @p push
+\       120-1
+\ : l0
+\     @p push @p
+\       320-1
+\       0
+\     dup ! unext
+\ 
+\     @p push @p
+\       320-1
+\       63|(63<<6)|(63<<12)
+\     dup ! unext
+\ 
+\     next l0
+\ 
+\     @p push
+\       640*120-1
+\ : pattern
+\     pop dup push @p
+\       1
+\     and @p . +
+\       -1
+\     ! next pattern
 
+    @p b!
+      WEST
     @p push
-      120-1
-: l0
-    @p push @p
-      320-1
-      0
-    dup ! unext
-
-    @p push @p
-      320-1
-      63|(63<<6)|(63<<12)
-    dup ! unext
-
-    next l0
-
-    @p push @p
-      640*120-1
-      32|(32<<6)
-    dup ! unext
+      (640*480)/2-1
+    @b ! unext
+    @p push
+      (640*480)/2-1
+    @b ! unext
 
     @p call zeroes
       640*10-1
@@ -197,3 +209,52 @@ WIRE(NORTH, io)
     dup dup or
     dup ! unext
     ;
+
+---------------------------- 415 ----------------------------
+    @p b!
+      EAST
+: again
+    @p a! @
+      NORTH
+    !b
+    @p a! @
+      SOUTH
+    !b
+    jump again
+
+
+---------------------------- 315 ----------------------------
+    @p b! @p
+      NORTH
+      7676
+: again
+    \ dup !b
+    dup @p and @p
+      1
+      -1
+    . + !b
+    -if ispos
+    2* @p or
+      0x81
+    jump again
+: ispos
+    2*
+    jump again
+
+---------------------------- 515 ----------------------------
+    @p b! @p
+      SOUTH
+      1
+: again
+    \ dup !b
+    dup @p and @p
+      1
+      -1
+    . + !b
+    -if ispos
+    2* @p or
+      0x81
+    jump again
+: ispos
+    2*
+    jump again
