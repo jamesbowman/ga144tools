@@ -180,17 +180,30 @@ WIRE(NORTH, io)
     dup dup or
     dup !b unext ;
 
----------------------------- 415 ----------------------------
+\ CONVEYOR(N) carries N words from WEST then a single word
+\ from NORTH.
+define(CONVEYOR, `
     @p b!
       EAST
 : again
+    @p a! @p
+      WEST
+      $2-1
+    push
+    @ !b unext
     @p a! @
       NORTH
-    !b
-    @p a! @
-      SOUTH
-    !b
-    jump again
+    !b jump again
+')
+
+---------------------------- 415 ----------------------------
+CONVEYOR(2)
+
+---------------------------- 414 ----------------------------
+CONVEYOR(1)
+
+---------------------------- 413 ----------------------------
+WIRE(NORTH, EAST)
 
 define(GREEN, `
     @p
@@ -201,7 +214,7 @@ define(RAMPS, `
     call x
 ')
 
-define(BODY, RAMPS)
+define(BODY, GREEN)
 
 define(PIXEL_GEN, `
 ---------------------------- $1 ----------------------------
@@ -209,7 +222,7 @@ define(PIXEL_GEN, `
       $2
 : again
     BODY
-    call bump
+    \ call bump
     !b jump again
 : bump
     call x
@@ -221,5 +234,19 @@ define(PIXEL_GEN, `
       $3
 ')
 
+PIXEL_GEN(500, SOUTH, 0)
+PIXEL_GEN(501, SOUTH, 0)
+PIXEL_GEN(502, SOUTH, 0)
+PIXEL_GEN(503, SOUTH, 0)
+PIXEL_GEN(504, SOUTH, 0)
+PIXEL_GEN(505, SOUTH, 0)
+PIXEL_GEN(506, SOUTH, 0)
+PIXEL_GEN(507, SOUTH, 0)
+PIXEL_GEN(508, SOUTH, 0)
+PIXEL_GEN(509, SOUTH, 0)
+PIXEL_GEN(510, SOUTH, 0)
+PIXEL_GEN(511, SOUTH, 0)
+PIXEL_GEN(512, SOUTH, 0)
+PIXEL_GEN(513, SOUTH, 0)
+PIXEL_GEN(514, SOUTH, 0)
 PIXEL_GEN(515, SOUTH, 0)
-PIXEL_GEN(315, NORTH, 1)
