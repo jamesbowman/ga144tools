@@ -196,7 +196,9 @@ class Node():
         lines = [l for l in prg.split("\n") if l]
         for p in (0, 1):
             self.setpass(p)
-            ops = []
+            prefix = []     # the prefix part of the node's program
+            ops = []        # the loaded part of the node's program
+            target = prefix
             BACKSLASH = "\\"
             for lineno, ol in enumerate(lines, 1):
                 if BACKSLASH in ol:
@@ -208,6 +210,7 @@ class Node():
                     if s[0] == ":":
                         self.symbols[s[1]] = len(ops)
                         self.lst('%02x:           %s' % (len(ops), ol))
+                        target = ops
                     else:
                         try:
                             opcode = self.assemble(s, pc = len(ops))
@@ -215,10 +218,11 @@ class Node():
                             print l
                             print msg
                             sys.exit(1)
-                        ops.append(opcode)
-                        self.lst('%02x: %05x     %s' % (len(ops) - 1, opcode, ol))
+                        self.lst('%02x: %05x     %s' % (len(ops), opcode, ol))
+                        target.append(opcode)
                 else:
                     self.lst('%02x:           %s' % (len(ops), ol))
+        self.prefix = prefix + [self.assemble("jump 0".split())]
         self.load_pgm = ops
 
     def pump(self, path):
@@ -245,7 +249,7 @@ class Node():
                   len(self.load_pgm) - 1,
                   self.assemble(["push"]),
                   self.assemble("@p !+ unext".split())] + self.load_pgm
-            r += [self.assemble("jump 0".split())]
+            r += self.prefix
         return r
 
 class GA144:
@@ -275,8 +279,8 @@ class GA144:
 
     def bootstream(self):
         r = []
-        path = ['SOUTH', 'SOUTH', 'SOUTH', 'SOUTH', 'SOUTH', 'SOUTH', 'SOUTH', 'WEST']
-        path = ['SOUTH', 'SOUTH', 'EAST', 'SOUTH', 'WEST', 'SOUTH', 'SOUTH', 'SOUTH', 'SOUTH', 'WEST']
+        # path = ['SOUTH', 'SOUTH', 'SOUTH', 'SOUTH', 'SOUTH', 'SOUTH', 'SOUTH', 'WEST']
+        # path = ['SOUTH', 'SOUTH', 'EAST', 'SOUTH', 'WEST', 'SOUTH', 'SOUTH', 'SOUTH', 'SOUTH', 'WEST']
         s6w = ['SOUTH'] * 6 + ['WEST']
         n6w = ['NORTH'] * 6 + ['WEST']
         path = (['EAST'] * 9 + ['SOUTH'] + (s6w + n6w) * 8 +

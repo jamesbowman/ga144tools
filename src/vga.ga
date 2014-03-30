@@ -44,6 +44,7 @@ define(DAC, `
         1
         1
     over over . +
+: cold
     dup !
 : again
     jump again
@@ -256,5 +257,4 @@ WIRE(NORTH, io)
       0x81
     jump again
 : ispos
-    2*
-    jump again
+    2* jump again
