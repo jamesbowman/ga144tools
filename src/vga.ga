@@ -6,14 +6,37 @@ include(708out.hdr)
 
 \ GND     J27.1
 \ 709.ao  J27.2
-\ 713.ao  J27.5
-\ 717.ao  J27.7
+\ 713.ao  J27.5     blue
+\ 717.ao  J27.7     red
 
-\ 617.ao  J21.2
+\ 617.ao  J21.1     green
+\             2
 \ 517.17  J21.3     
 \ 417.17  J21.4     HSYNC (yellow)
 \ 317.17  J21.5     VSYNC (red)
 \ 117.ao  J21.7
+
+define(WIRE_64DIV, `
+    @p a! @p
+        $1
+        $2
+    b!
+: again
+    @ 2/ 2/
+    2/ 2/ 2/
+    2/ !b jump again')
+
+define(DAC, `
+      @p a!
+        $1
+      @p b!
+        io
+      @p
+        0x155
+: again
+      @ 2* 2*
+      2* over or
+      !b jump again')
 
 ---------------------------- 608 ----------------------------
     @p a! @p @p
@@ -26,30 +49,31 @@ include(708out.hdr)
     jump again
 
 ---------------------------- 717 ----------------------------
-\     @p a! @p
-\         io
-\         0
-\ : again
-\     @p . +
-\       1
-\     dup @p or
-\       0x155
-\     !  jump again
-
-      @p a!
-        SOUTH
-      @p b!
-        io
-: again
-      @p @ or
-        0x155
-      b!  jump again
+DAC(WEST)
 
 ---------------------------- 617 ----------------------------
-WIRE(SOUTH, NORTH)
+DAC(SOUTH)
+
+---------------------------- 713 ----------------------------
+DAC(EAST)
+
+---------------------------- 714 ----------------------------
+WIRE(EAST, WEST)
+
+---------------------------- 715 ----------------------------
+WIRE_64DIV(EAST, WEST)
 
 ---------------------------- 517 ----------------------------
-WIRE(SOUTH, NORTH)
+WIRE(SOUTH, NORTH_WEST)
+
+---------------------------- 516 ----------------------------
+WIRE(EAST, NORTH)
+
+---------------------------- 616 ----------------------------
+WIRE_64DIV(SOUTH, NORTH)
+
+---------------------------- 716 ----------------------------
+WIRE(SOUTH, EAST_WEST)
 
 ---------------------------- 417 ----------------------------
 
@@ -59,15 +83,15 @@ WIRE(SOUTH, NORTH)
     @p call vsync   \ sync
       0x20000
     @p call  lines
-      2
+      2-1
     @p call vsync
       0x30000
     @p call  lines  \ back porch
-      33
+      33-1
     @p call  lines  \ frame
-      480
+      480-1
     @p call  lines  \ front porch
-      10
+      10-1
     jump again
 : lines
     push
@@ -85,8 +109,24 @@ WIRE(SOUTH, NORTH)
     @p call delay
       int(3.8133/.00248)
     dup !b    \ high
-    @p call delay
-      int((25.422)/.00248)
+
+\   @p call delay
+\     int((25.422)/.00248)
+
+    @p a!
+      WEST
+    @p b!
+      NORTH
+    @p push
+      640-1
+: active
+      . . @ .
+      . . !b .
+      . . . .
+      . next active
+    @p !b
+      0
+
     @p call delay
       int((1.906)/.00248)
 
@@ -108,3 +148,41 @@ WIRE(SOUTH, NORTH)
       SOUTH
 ---------------------------- 317 ----------------------------
 WIRE(NORTH, io)
+
+---------------------------- 416 ----------------------------
+    @p a!
+      EAST
+
+\ : again
+\     @p . +
+\       1
+\     dup ! jump again
+
+: screen
+    @p call zeroes
+      640*35-1
+
+    @p push @p
+      640*240-1
+      63
+    dup ! unext
+
+    @p push @p
+      640*120-1
+      63|(63<<6)|(63<<12)
+    dup ! unext
+
+    @p push @p
+      640*120-1
+      32|(32<<6)
+    dup ! unext
+
+    @p call zeroes
+      640*10-1
+    jump screen
+
+: zeroes
+    push
+    dup dup or
+    dup ! unext
+    ;

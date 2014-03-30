@@ -42,6 +42,9 @@ opcodes = dict([(name, op) for (op, name) in mnemonics.items()])
 class Illegal(Exception):
     pass
 
+def portunion(pa, pb):
+    return "".join([chr(max(ord(a), ord(b))) for (a,b) in zip(pa, pb)])
+
 class Node():
     labels = {
         'io'   : 0x15d,
@@ -83,10 +86,28 @@ class Node():
         else:
             w = 'r---'
             e = '--l-'
-        self.symbols['NORTH'] = self.symbols[n]
-        self.symbols['EAST'] = self.symbols[e]
-        self.symbols['SOUTH'] = self.symbols[s]
-        self.symbols['WEST'] = self.symbols[w]
+
+        for _n in (0,1):
+            for _e in (0,1):
+                for _s in (0,1):
+                    for _w in (0,1):
+                        port = '----'
+                        name = []
+                        if _n:
+                            name.append('NORTH')
+                            port = portunion(port, n)
+                        if _e:
+                            name.append('EAST')
+                            port = portunion(port, e)
+                        if _s:
+                            name.append('SOUTH')
+                            port = portunion(port, s)
+                        if _w:
+                            name.append('WEST')
+                            port = portunion(port, w)
+                        name = "_".join(name)
+                        if port != '----':
+                            self.symbols[name] = self.symbols[port]
         self.setpass(1)
 
     def toslot(self, code, slot):
