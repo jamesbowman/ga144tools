@@ -151,65 +151,34 @@ WIRE(SOUTH, EAST_WEST)
 WIRE(NORTH, io)
 
 ---------------------------- 416 ----------------------------
-    @p a!
-      EAST
 
-\ : again
-\     @p . +
-\       1
-\     dup ! jump again
+\ Like a wire node from WEST to EAST, but inserts zero pixels
+\ for the non-visible lines
+
+    @p a!
+      WEST
+    @p b!
+      EAST
 
 : screen
     @p call zeroes
       640*35-1
 
-\     @p push @p
-\       640*240-1
-\       63
-\     dup ! unext
-\ 
-\     @p push
-\       120-1
-\ : l0
-\     @p push @p
-\       320-1
-\       0
-\     dup ! unext
-\ 
-\     @p push @p
-\       320-1
-\       63|(63<<6)|(63<<12)
-\     dup ! unext
-\ 
-\     next l0
-\ 
-\     @p push
-\       640*120-1
-\ : pattern
-\     pop dup push @p
-\       1
-\     and @p . +
-\       -1
-\     ! next pattern
-
-    @p b!
-      WEST
-    @p push
+    \ 640*480 does not fit in 18 bits, so do it twice
+    @p dup
       (640*480)/2-1
-    @b ! unext
-    @p push
-      (640*480)/2-1
-    @b ! unext
+    push push
+    @ !b unext
+    @ !b unext
 
     @p call zeroes
       640*10-1
     jump screen
 
-: zeroes
+: zeroes ( n -- ) \ send n zeroes to b
     push
     dup dup or
-    dup ! unext
-    ;
+    dup !b unext ;
 
 ---------------------------- 415 ----------------------------
     @p b!
@@ -223,38 +192,34 @@ WIRE(NORTH, io)
     !b
     jump again
 
+define(GREEN, `
+    @p
+      63
+')
 
----------------------------- 315 ----------------------------
-    @p b! @p
-      NORTH
-      7676
-: again
-    \ dup !b
-    dup @p and @p
-      1
-      -1
-    . + !b
-    -if ispos
-    2* @p or
-      0x81
-    jump again
-: ispos
-    2*
-    jump again
+define(RAMPS, `
+    call x
+')
 
----------------------------- 515 ----------------------------
-    @p b! @p
-      SOUTH
-      1
+define(BODY, RAMPS)
+
+define(PIXEL_GEN, `
+---------------------------- $1 ----------------------------
+    @p b!
+      $2
 : again
-    \ dup !b
-    dup @p and @p
-      1
-      -1
-    . + !b
-    -if ispos
-    2* @p or
-      0x81
-    jump again
-: ispos
-    2* jump again
+    BODY
+    call bump
+    !b jump again
+: bump
+    call x
+    @p . +
+      2
+    @p drop !p ;
+: x
+    @p ;
+      $3
+')
+
+PIXEL_GEN(515, SOUTH, 0)
+PIXEL_GEN(315, NORTH, 1)
