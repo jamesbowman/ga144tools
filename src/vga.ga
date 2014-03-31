@@ -186,35 +186,83 @@ define(CONVEYOR, `
     @p b!
       EAST
 : again
-    @p a! @p
-      WEST
-      $2-1
-    push
-    @ !b unext
     @p a! @
       NORTH
-    !b jump again
+    !b @p a! @p
+      WEST
+      $1-1
+    push
+    @ !b unext
+    jump again
 ')
 
 ---------------------------- 415 ----------------------------
-CONVEYOR(2)
+CONVEYOR(15)
 
 ---------------------------- 414 ----------------------------
-CONVEYOR(1)
+CONVEYOR(14)
 
 ---------------------------- 413 ----------------------------
+CONVEYOR(13)
+
+---------------------------- 412 ----------------------------
+CONVEYOR(12)
+
+---------------------------- 411 ----------------------------
+CONVEYOR(11)
+
+---------------------------- 410 ----------------------------
+CONVEYOR(10)
+
+---------------------------- 409 ----------------------------
+CONVEYOR(9)
+
+---------------------------- 408 ----------------------------
+CONVEYOR(8)
+
+---------------------------- 407 ----------------------------
+CONVEYOR(7)
+
+---------------------------- 406 ----------------------------
+CONVEYOR(6)
+
+---------------------------- 405 ----------------------------
+CONVEYOR(5)
+
+---------------------------- 404 ----------------------------
+CONVEYOR(4)
+
+---------------------------- 403 ----------------------------
+CONVEYOR(3)
+
+---------------------------- 402 ----------------------------
+CONVEYOR(2)
+
+---------------------------- 401 ----------------------------
+CONVEYOR(1)
+
+---------------------------- 400 ----------------------------
 WIRE(NORTH, EAST)
 
 define(GREEN, `
-    @p
-      63
+    @p @p @p
+      0xffff
+      0xffff
+      0xffff
 ')
 
 define(RAMPS, `
     call x
+    2* 2* 2*
+    2* 2*
+    dup dup
 ')
 
-define(BODY, GREEN)
+define(BODY, RAMPS)
+
+\   @p push
+\     224       \ 3 nodes: 35, 4 nodes: 48, 16 nodes 224
+\   unext
 
 define(PIXEL_GEN, `
 ---------------------------- $1 ----------------------------
@@ -222,31 +270,64 @@ define(PIXEL_GEN, `
       $2
 : again
     BODY
-    \ call bump
-    !b jump again
+
+    \ ( r g b ), now reformat to 18-bit BRG
+    \ b: msb 15 to 17
+    \ g: msb 15 to 5
+    \ r: msb 15 to 11
+
+    \ blue
+    2* 2*
+    @p and push
+      63<<12
+
+    \ green
+    2/ 2/ 2/
+    2/ 2/ 2/
+    2/ 2/ 2/
+    2/
+    @p and push
+      63
+
+    \ red
+    2/ 2/ 2/
+    2/
+    @p and
+      63<<6
+    pop pop
+    or or
+
+    !b call bump
+    jump again
 : bump
     call x
     @p . +
-      2
+      16
+    dup @p . +
+      -640
+    -if storex
+      drop  \ was negative, drop
+    
+: storex
     @p drop !p ;
 : x
     @p ;
       $3
 ')
 
-PIXEL_GEN(500, SOUTH, 0)
-PIXEL_GEN(501, SOUTH, 0)
-PIXEL_GEN(502, SOUTH, 0)
-PIXEL_GEN(503, SOUTH, 0)
-PIXEL_GEN(504, SOUTH, 0)
-PIXEL_GEN(505, SOUTH, 0)
-PIXEL_GEN(506, SOUTH, 0)
-PIXEL_GEN(507, SOUTH, 0)
-PIXEL_GEN(508, SOUTH, 0)
-PIXEL_GEN(509, SOUTH, 0)
-PIXEL_GEN(510, SOUTH, 0)
-PIXEL_GEN(511, SOUTH, 0)
-PIXEL_GEN(512, SOUTH, 0)
-PIXEL_GEN(513, SOUTH, 0)
-PIXEL_GEN(514, SOUTH, 0)
+PIXEL_GEN(500, SOUTH, 15)
+PIXEL_GEN(501, SOUTH, 14)
+PIXEL_GEN(502, SOUTH, 13)
+PIXEL_GEN(503, SOUTH, 12)
+PIXEL_GEN(504, SOUTH, 11)
+PIXEL_GEN(505, SOUTH, 10)
+PIXEL_GEN(506, SOUTH, 9)
+PIXEL_GEN(507, SOUTH, 8)
+PIXEL_GEN(508, SOUTH, 7)
+PIXEL_GEN(509, SOUTH, 6)
+PIXEL_GEN(510, SOUTH, 5)
+PIXEL_GEN(511, SOUTH, 4)
+PIXEL_GEN(512, SOUTH, 3)
+PIXEL_GEN(513, SOUTH, 2)
+PIXEL_GEN(514, SOUTH, 1)
 PIXEL_GEN(515, SOUTH, 0)
