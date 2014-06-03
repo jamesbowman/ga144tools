@@ -1,0 +1,71 @@
+include(ga144.hdr)
+
+include(708out.hdr)
+
+---------------------------- 608 ----------------------------
+
+  @p a!
+    NORTH
+  @p b!
+    SOUTH
+: main
+  @p call d4
+    1
+  @p call d4
+    5
+: hang
+  jump  hang
+
+: d4
+  !b
+  @b !
+  @b !
+  @b !
+  @b ! ;
+
+---------------------------- 508 ----------------------------
+\ fetch instruction from b
+\ search table
+\ send 4 words if match
+\ do nothing if not found
+
+  @p b!
+    NORTH
+: searcher
+  @b @p a! @p
+    table
+    1
+  push
+: checkloop
+  dup @+ and
+  @+ or
+  if match
+  drop
+  a @p . +
+    4
+  a!
+  next checkloop
+  jump searcher
+: match
+  @p push
+    3
+  @+ !b unext
+  jump searcher
+
+: table
+
+  0xff
+  1
+  100
+  200
+  300
+  400
+
+  0xff
+  5
+  500
+  600
+  700
+  800
+
+  0

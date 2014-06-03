@@ -1,12 +1,12 @@
 # python galois.py ; exit
 PORT=/dev/tty.usbserial-000013FA
-PORT=/dev/ttyUSB1
+PORT=/dev/ttyUSB2
 
 # python asm.py $PORT helloworld.ga ; exit
 # python asm.py $PORT fibonacci.ga ; exit
 # python asm.py $PORT mathdemo.ga ; exit
-python asm.py $PORT vga.ga ; exit
-# python asm.py $PORT galois.ga ; exit
+# python asm.py $PORT vga.ga ; exit
+python asm.py $PORT pdp.ga ; exit
 
 # python asm.py $PORT memwrite.ga
 
