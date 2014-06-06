@@ -23,15 +23,16 @@ ifelse(`
   @b !
   @b !
   @b ! ;
+')
 
----------------------------- 508 ----------------------------
+---------------------------- 607 ----------------------------
 \ fetch instruction from b
 \ search table
 \   send 4 words if match
 \ do nothing if not found
 
   @p b!
-    NORTH
+    EAST
 : searcher
   @b @p a!
     table
@@ -50,12 +51,12 @@ ifelse(`
 
 : table
 
-  0xff
-  1
-  100
-  200
-  300
-  400
+  0x0001
+  0
+    @p @p . +
+     1
+     2
+    . + ;
 
   0xff
   5
@@ -107,14 +108,13 @@ ifelse(`
   1400
 
   0
-')
 
 ---------------------------- 608 ----------------------------
 
   @p b!
-    NORTH
-  @p a!
     EAST
+  @p a!
+    WEST
 : code
   @p !b
     0x33333
@@ -143,15 +143,14 @@ ifelse(`
 \   6
 \ !b
 
-  @p push
-    100
 : loop
-  @p call ea
-    023
-  !b next loop
-
-: still
-  jump still
+  call fetch
+  dup !
+  call WEST
+  a push @p
+    NORTH
+  a! ! pop
+  a! jump loop
 
 : ea \ ( sf -- ea ) compute EA for use with @ram, !ram
   dup @p and
@@ -173,8 +172,7 @@ ifelse(`
 : indexed
   call  fetch
   push  call ram@
-  pop . +
-  jump  ram@
+  pop . + ;
 
 : predec \ ( rptr )
   call  ram@
@@ -192,12 +190,12 @@ ifelse(`
   pop + push ;
 
 : ram@ ( ea -- v )
-  2/ @p !
+  2/ @p !b
     @p a! @ !p
-  ! @ ;
+  !b @b ;
 
 : ram! ( v -- )
-  @p ! ! ;
+  @p !b !b ;
     @p ! . .
 
 : fetch  \ fetch next word from PC
@@ -221,7 +219,7 @@ ifelse(`
   40
   50
   60
-  70
+  16
   800
   900
   1000
