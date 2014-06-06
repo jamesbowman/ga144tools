@@ -8,12 +8,8 @@ PORT=/dev/ttyUSB2
 # python asm.py $PORT vga.ga ; exit
 
 export PATH=data/pdp11/local/bin:$PATH
-pdp11-aout-as -o crt0.o crt0.s &&
-pdp11-aout-objdump -d crt0.o &&
-pdp11-aout-ld -o a.out crt0.o &&
-pdp11-aout-ld --oformat binary -o binary a.out &&
-hexdump binary
-
+make || exit
+# exit
 python mkpdp.py $PORT ; exit
 
 # python asm.py $PORT memwrite.ga

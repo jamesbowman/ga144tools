@@ -10,7 +10,7 @@
         .word 10006
         .word 16
 label:
-        neg r3
+        add $-1,r0
         mfpi r0
         mfpi r1
         mfpi r2
@@ -20,3 +20,5 @@ label:
         mfpi r6
         mfpi r7
         jmp label
+
+        mov 11(sp),100(sp)

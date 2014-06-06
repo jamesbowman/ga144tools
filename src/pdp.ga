@@ -17,24 +17,29 @@ include(708out.hdr)
 : snap
   ! pop a! ;
 
-: ea \ ( sf -- ea ) compute EA for use with @ram, !ram
-  dup @p and
+: fetch  \ fetch next word from PC
+  @p jump ea
+    037
+
+: ea                \ ( opcode -- ea ) compute EA from low 6 bits of opcode
+  dup @p and        \ handle 'deferred' modes if bit 3 set
     8
   if simple
   call  simple
   jump  ram@
 : simple
-  drop dup push
+  drop dup push     \ save the original field
   @p and 2*
     7
   pop 2/ 2/ @p
     0b001100
   and 2/ 2/
   call  dispatch
-  ;
-  jump  postinc
-  jump  predec
-: indexed
+  ;                 \ Rn
+  jump  postinc     \ (Rn)+
+  jump  predec      \ -(Rn)
+: indexed           \ X(Rn)
+
   call  fetch
   push  call ram@
   pop . +
@@ -53,9 +58,11 @@ include(708out.hdr)
     2
   jump ram!
 
-: dispatch
-  pop + push ;
-
+: ssdd              \ ( opcode -- src dst )
+  dup push 2/
+  2/ 2/ 2/
+  2/ 2/ call ea@
+  pop
 : ea@   \ ( sf -- v )
   call ea
 : ram@ ( ea -- v )
@@ -67,10 +74,5 @@ include(708out.hdr)
   @p !b !b ;
     @p ! . .
 
-: fetch  \ fetch next word from PC
-  @p jump ea
-    037
-
-: ea!   \ ( v sf -- v )
-  call  ea
-  jump  ram!
+: dispatch
+  pop + push ;
