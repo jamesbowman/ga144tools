@@ -1,0 +1,83 @@
+---------------------------- 607 ----------------------------
+\ fetch instruction from b
+\ search table
+\   send 4 words if match
+\ do nothing if not found
+
+  @p b!
+    EAST
+: searcher
+  @b @p a!
+    table
+: checkloop
+  dup @+ if searcher
+  and @+ or
+  if match
+  drop a @p +
+    4
+  a! jump checkloop
+: match
+  @p push
+    3
+  @+ !b unext
+  jump searcher
+
+: table
+
+  0177700   \ JUMP
+  0000100
+    call ea
+    @p call ram@
+      14
+    drop jump ram!
+
+  0177700   \ MFPI
+  0006500
+    call ea
+    call ram@
+    . . . .
+    jump snap
+
+  0xff
+  6
+  600
+  700
+  800
+  900
+
+  0xff
+  7
+  700
+  800
+  900
+  1000
+
+  0xff
+  8
+  800
+  900
+  1000
+  1100
+
+  0xff
+  9
+  900
+  1000
+  1100
+  1200
+
+  0xff
+  10
+  1000
+  1100
+  1200
+  1300
+
+  0xff
+  11
+  1100
+  1200
+  1300
+  1400
+
+  0
