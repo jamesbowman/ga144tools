@@ -31,47 +31,49 @@
       14
     drop jump ram!
 
-  0177700   \ MFPI
+  0177700   \ MFPI - used as 'SNAP' for debug
   0006500
-    call ea
-    call ram@
-    . . . .
-    jump snap
+    call ea@
+    a push @p
+      NORTH
+    a! jump snap
 
-  0xff
-  6
-  600
-  700
-  800
-  900
+  0177700   \ CLR
+  0005000
+    call ea@
+    dup or
+    .
+    jump ram!
 
-  0xff
-  7
-  700
-  800
-  900
-  1000
+  0177700   \ COM
+  0005100
+    call ea@
+    -
+    .
+    jump ram!
 
-  0xff
-  8
-  800
-  900
-  1000
-  1100
+  0177700   \ INC
+  0005200
+    call ea@
+    @p . +
+      1
+    jump ram!
 
-  0xff
-  9
-  900
-  1000
-  1100
-  1200
 
-  0xff
-  10
-  1000
-  1100
-  1200
-  1300
+  0177700   \ DEC
+  0005300
+    call ea@
+    @p . +
+      -1
+    jump ram!
+
+
+  0177700   \ NEG
+  0005400
+    call ea@
+    - @p . +
+      1
+    jump ram!
 
   0xff
   11

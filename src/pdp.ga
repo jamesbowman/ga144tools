@@ -12,16 +12,10 @@ include(708out.hdr)
   call fetch
   dup !
   call WEST
-  @p call ram@
-    14
-  call snap
   jump loop
 
 : snap
-  a push @p
-    NORTH
-  a! ! pop
-  a! ;
+  ! pop a! ;
 
 : ea \ ( sf -- ea ) compute EA for use with @ram, !ram
   dup @p and
@@ -62,6 +56,8 @@ include(708out.hdr)
 : dispatch
   pop + push ;
 
+: ea@   \ ( sf -- v )
+  call ea
 : ram@ ( ea -- v )
   2/ @p !b
     @p a! @ !p
@@ -74,10 +70,6 @@ include(708out.hdr)
 : fetch  \ fetch next word from PC
   @p jump ea
     037
-
-: ea@   \ ( sf -- v )
-  call ea
-  jump ram@
 
 : ea!   \ ( v sf -- v )
   call  ea
