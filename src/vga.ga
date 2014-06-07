@@ -408,3 +408,31 @@ PIXEL_GEN(512, SOUTH, 3)
 PIXEL_GEN(513, SOUTH, 2)
 PIXEL_GEN(514, SOUTH, 1)
 PIXEL_GEN(515, SOUTH, 0)
+
+---------------------------- 300 ----------------------------
+: wave
+   call linUp
+   call linDn   
+   jump wave
+
+: linUp
+   dup or @p
+     0xFE
+: uploop
+   dup @p or
+     0x155
+   !b @p . + 
+     2
+   next uploop
+   ;
+
+: linDn   
+   @p
+     0xFE
+: downloop
+   dup @p or
+     0x155
+   !b @p . +
+     -2
+   next downloop
+   ;

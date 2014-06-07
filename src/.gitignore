@@ -2,3 +2,7 @@
 bin
 lst
 unused
+*.o
+a.out
+binary
+out.png
