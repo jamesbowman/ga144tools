@@ -1,11 +1,26 @@
 ---------------------------- 507 ----------------------------
+  @p a!
+    EAST
+: main
+  @ dup @p 
+    WEST
+  b! !b dup @p 
+    NORTH
+  b! !b dup @p 
+    SOUTH
+  b! !b @p @p
+    3
+    NORTH_SOUTH_WEST
+  b! push
+
+  @b ! unext
+ jump main
+
+define(`searchnode', `
 \ fetch instruction from b
 \ search table
 \   send 4 words if match
 \ do nothing if not found
-
-  @p b!
-    EAST
 : searcher
   @b @p a!
     table
@@ -24,19 +39,12 @@
 
 : table
 
-  0177700   \ JUMP
-  0000100
-    call ea
-    @p call ram@
-      14
-    drop jump ram!
+')
 
-  0177700   \ MFPI - used as 'SNAP' for debug
-  0006500
-    call ea@
-    a push @p
-      NORTH
-    a! jump snap
+---------------------------- 506 ----------------------------
+  @p b!
+    EAST
+searchnode()
 
   0177700   \ CLR
   0005000
@@ -75,11 +83,39 @@
       1
     jump ram!
 
+  0177700   \ MFPI - used as 'SNAP' for debug
+  0006500
+    .
+    .
+    .
+    jump snap
+
+  0
+
+---------------------------- 407 ----------------------------
+  @p b!
+    NORTH
+searchnode()
+
   0170000   \ ADD
   0060000
     call ssdd
     . +
     .
     jump ram!
+
+  0
+
+---------------------------- 607 ----------------------------
+  @p b!
+    SOUTH
+searchnode()
+
+  0177700   \ JUMP
+  0000100
+    call ea
+    @p call ram@
+      14
+    drop jump ram!
 
   0

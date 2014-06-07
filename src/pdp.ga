@@ -18,6 +18,10 @@ WIRE(SOUTH, NORTH)
   jump loop
 
 : snap
+    call ea@
+    a push @p
+      NORTH
+    a!
   ! pop a! ;
 
 : fetch  \ fetch next word from PC

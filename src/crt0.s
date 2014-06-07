@@ -10,7 +10,7 @@
         .word 10006
         .word 16
 label:
-        add $-1,r0
+        add $100,r0
         mfpi r0
         mfpi r1
         mfpi r2
