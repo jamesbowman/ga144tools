@@ -1,5 +1,5 @@
-import array
 import sys
+import array
 from ga144 import GA144
 import draw
 
@@ -16,9 +16,10 @@ if __name__ == '__main__':
 
     g.loadprogram("fragments.ga")
 
+    # Load the program into node 509
     pn = g.node['509']
     pn.prefix = [pn.assemble(["jump", "WEST"])]
-    binary = open("binary").read()
+    binary = open(sys.argv[2]).read()
     assert len(binary) <= 64, "binary is too big (%d)" % len(binary)
     pn.load_pgm = array.array('H', binary).tolist()
 

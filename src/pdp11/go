@@ -6,7 +6,7 @@ export PYTHONPATH=..:$PYTHONPATH
 export M4PATH=..
 make || exit
 # exit
-python mkpdp.py $PORT ; exit
+python mkpdp.py $PORT benchmark.bin ; exit
 
 # python asm.py $PORT memwrite.ga
 

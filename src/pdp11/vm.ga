@@ -43,6 +43,7 @@ WIRE(SOUTH, NORTH)
   call  fetch
   push  call ram@
   pop . +
+: mod64K
   @p and ;
     0xffff
 
@@ -57,6 +58,7 @@ WIRE(SOUTH, NORTH)
   dup @p . +
     2
 : ram! ( v -- )
+  call mod64K
   @p !b !b ;
     @p ! . .
 
@@ -98,7 +100,7 @@ WIRE(SOUTH, NORTH)
 : notake
   drop pop drop ;
 
-: ea_pushpc         \ compute EA, push the current PC. For CALL
+: ea_pushpc         \ compute EA, push the current PC. For JSR
     call ea
     @p call ssdd    \ ssdd field for "R7,-(SP)"
       00746

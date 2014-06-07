@@ -125,6 +125,13 @@ searchnode()
     .
     jump ram!
 
+  0170000   \ SUB
+  0160000
+    call ssdd
+    - . + 
+    -
+    jump ram!
+
   0
 
 ---------------------------- 607 ----------------------------
@@ -132,50 +139,50 @@ searchnode()
     SOUTH
 searchnode()
 
-  0xff00
-  000400    \ BR
+  0xff00    \ BR
+  000400
     call branch8
     @p call ram@
       14
     + jump ram!
 
-  0x30000
   0x30000   \ 'pseudo' instruction, used for a taken branch
+  0x30000
     - call branch8
     @p call ram@
       14
     + jump ram!
 
-  0xff00
-  001000    \ BNE
+  0xff00    \ BNE
+  001000
     push over over
     or 
     .
     jump conditional
 
-  0xff00
-  001400    \ BEQ
+  0xff00    \ BEQ
+  001400
     push over over
     or 
     .
     jump rconditional
 
-  0177700
-  0000100   \ JMP
+  0177700   \ JMP
+  0000100
     call ea
     @p call ram@
       14
     drop jump ram!
 
-  0177700
-  0004700   \ JSR
+  0177700   \ JSR
+  0004700
     call ea_pushpc
     @p call ram@
       14
     drop jump ram!
 
-  0177777
-  0000207   \ RTS
+  0177777   \ RTS
+  0000207
     .
     .
     @p jump execute
