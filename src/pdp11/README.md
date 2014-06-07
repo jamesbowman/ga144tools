@@ -1,5 +1,5 @@
-soft PDP11 GA144
-================
+soft PDP11 for GA144
+====================
 
 Some test cases:
 
