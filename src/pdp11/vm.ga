@@ -18,7 +18,7 @@ WIRE(SOUTH, NORTH)
   call WEST
   jump loop
 
-: snap
+: _emit
   ! pop a! ;
 
 : ea                \ ( opcode -- ea ) compute EA from low 6 bits of opcode

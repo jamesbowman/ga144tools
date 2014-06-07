@@ -83,19 +83,19 @@ searchnode()
       1
     jump ram!
 
-  0177700   \ MFPI - used as 'SNAP' for debug
+  0177700   \ MFPI - used as 'EMIT' for debug
   0006500
     call ea@
     a push @p
       ---u
-    a! jump snap
+    a! jump _emit
 
   0177777   \ BPT - dump top of stack
   0000003
     drop
     a push @p
       ---u
-    a! jump snap
+    a! jump _emit
 
   0
 
