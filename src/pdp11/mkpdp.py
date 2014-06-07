@@ -18,7 +18,9 @@ if __name__ == '__main__':
 
     pn = g.node['509']
     pn.prefix = [pn.assemble(["jump", "WEST"])]
-    pn.load_pgm = array.array('H', open("binary").read()).tolist()
+    binary = open("binary").read()
+    assert len(binary) <= 64, "binary is too big (%d)" % len(binary)
+    pn.load_pgm = array.array('H', binary).tolist()
 
     # v = draw.Viz(g.active())
     # v.render("pictures/%s.png" % sys.argv[2])

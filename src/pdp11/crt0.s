@@ -1,24 +1,27 @@
+# crt0 for GA144 soft PDP11
+#
+# The first 8 locations of memory are the registers R0-R7
+# This crt0 saves a few words by putting the initialization
+# code at 0 also - it is clobbered as soon as the real
+# program runs.
         .text
-
         .even
-        .word 10000
-        .word 10001
-        .word 10002
-        .word 10003
-        .word 10004
-        .word 10005
-        .word 10006
-        .word 16
-label:
-        add $100,r0
-        mfpi r0
-        mfpi r1
-        mfpi r2
-        mfpi r3
-        mfpi r4
-        mfpi r5
-        mfpi r6
-        mfpi r7
-        br label
+        mfpi    $0x5555         # Write 5555 to debug
+        jmp     _pdpmain        # That is main
+        .word 0
+        .word 0
+        .word 64                # Initial SP
+        .word 0                 # Initial PC
 
-        mov 11(sp),100(sp)
+#         clr r0
+# loop:
+#         mfpi    r0
+#         add     $1,r0
+#         cmp     r0,$10
+#         bne     loop
+#         br      cold
+
+#         mov 11(sp),100(sp)
+#         bpt
+#         bpt
+# hang:   br hang

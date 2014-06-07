@@ -1,10 +1,9 @@
-#define SNAP(X) asm("mfpi %0" : : "r" (i))
+#define SNAP(X) __asm__("mfpi %0" : : "r" (i))
 #define main  pdpmain
 
-main()
+int main()
 {
-  int i;
-  for (;;)
-    for (i = 0; i != 10; i++)
+  for (int j = 3; ; j++)
+    for (int i = 0; i != j; i += 1)
         SNAP(i);
 }

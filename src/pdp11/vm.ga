@@ -80,10 +80,21 @@ WIRE(SOUTH, NORTH)
 : dispatch
   pop + push ;
 
-: branch8           \ compute an 8-bit branch target
+: branch8           \ ( opcode -- disp ) extract branch target -256..254
   @p dup push
     8
   push
   2* unext 2*
   2/ unext ;
 
+                    
+: conditional       \ if T is zero, take the branch in R
+  if notake
+: take
+  drop pop -
+  jump execute
+
+: rconditional      \ if T is nonzero, take the branch in R
+  if take
+: notake
+  drop pop drop ;

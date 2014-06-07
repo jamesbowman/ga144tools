@@ -1,5 +1,5 @@
 CC=pdp11-aout-gcc
-CFLAGS=-Os -fomit-frame-pointer
+CFLAGS=-Os -fomit-frame-pointer -std=c99
 AS=pdp11-aout-as
 LD=pdp11-aout-ld
 
@@ -9,8 +9,8 @@ all: main.o binary
 binary: a.out Makefile
 	pdp11-aout-ld --oformat binary -o binary a.out
 
-a.out: crt0.o Makefile
-	$(LD) -o a.out crt0.o
+a.out: crt0.o main.o Makefile
+	$(LD) -o a.out crt0.o main.o
 
 main.o: main.c Makefile
 
