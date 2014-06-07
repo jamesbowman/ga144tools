@@ -85,10 +85,10 @@ searchnode()
 
   0177700   \ MFPI - used as 'SNAP' for debug
   0006500
-    .
-    .
-    .
-    jump snap
+    call ea@
+    a push @p
+      ---u
+    a! jump snap
 
   0
 
