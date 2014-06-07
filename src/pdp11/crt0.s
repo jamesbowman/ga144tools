@@ -7,9 +7,8 @@
         .text
         .even
         mfpi    $0x5555         # Write 5555 to debug
+        mfpi    $0xaaaa         # Write aaaa to debug
         jmp     _pdpmain        # That is main
-        .word 0
-        .word 0
         .word 64                # Initial SP
         .word 0                 # Initial PC
 
