@@ -140,7 +140,7 @@ searchnode()
     + jump ram!
 
   0x30000
-  0x30000   \ pseudo-instruction, used for a taken branch
+  0x30000   \ 'pseudo' instruction, used for a taken branch
     - call branch8
     @p call ram@
       14
@@ -160,11 +160,25 @@ searchnode()
     .
     jump rconditional
 
-  0177700   \ JUMP
-  0000100
+  0177700
+  0000100   \ JMP
     call ea
     @p call ram@
       14
     drop jump ram!
 
+  0177700
+  0004700   \ JSR
+    call ea_pushpc
+    @p call ram@
+      14
+    drop jump ram!
+
+  0177777
+  0000207   \ RTS
+    .
+    .
+    @p jump execute
+      012607            \ opcode MOV (SP)+,R7
+      
   0

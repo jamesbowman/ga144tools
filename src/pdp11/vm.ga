@@ -11,7 +11,7 @@ WIRE(SOUTH, NORTH)
     EAST
   @p a!
     WEST
-: loop
+: loop              \ main execution loop
   call fetch
 : execute           \ T is an opcode. Execute it
   dup !
@@ -34,7 +34,7 @@ WIRE(SOUTH, NORTH)
     0b110000
   and 2/ 2/
   2/ 2/
-  call  dispatch
+  call  case
   ;                 \ Rn
   jump  postinc     \ (Rn)+
   jump  predec      \ -(Rn)
@@ -60,8 +60,7 @@ WIRE(SOUTH, NORTH)
   @p !b !b ;
     @p ! . .
 
-
-: ssdd              \ ( opcode -- src dst )
+: ssdd              \ ( opcode -- src dst ) get parameters of double operand
   dup push 2/
   2/ 2/ 2/
   2/ 2/ call ea@
@@ -73,11 +72,11 @@ WIRE(SOUTH, NORTH)
     @p a! @ !p
   !b @b ;
 
-: fetch  \ fetch next word from PC
+: fetch             \ fetch next word from PC by evaluating @(PC)+
   @p jump ea
     037
 
-: dispatch
+: case
   pop + push ;
 
 : branch8           \ ( opcode -- disp ) extract branch target -256..254
@@ -91,10 +90,16 @@ WIRE(SOUTH, NORTH)
 : conditional       \ if T is zero, take the branch in R
   if notake
 : take
-  drop pop -
+  drop pop -        \ invert opcode so it executes as 'pseudo'
   jump execute
 
 : rconditional      \ if T is nonzero, take the branch in R
   if take
 : notake
   drop pop drop ;
+
+: ea_pushpc         \ compute EA, push the current PC. For CALL
+    call ea
+    @p call ssdd    \ ssdd field for "R7,-(SP)"
+      00746
+    drop jump ram!
