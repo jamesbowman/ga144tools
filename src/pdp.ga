@@ -20,10 +20,6 @@ WIRE(SOUTH, NORTH)
 : snap
   ! pop a! ;
 
-: fetch  \ fetch next word from PC
-  @p jump ea
-    037
-
 : ea                \ ( opcode -- ea ) compute EA from low 6 bits of opcode
   dup @p and        \ handle 'deferred' modes if bit 3 set
     8
@@ -31,12 +27,12 @@ WIRE(SOUTH, NORTH)
   call  simple
   jump  ram@
 : simple
-  drop dup push     \ save the original field
-  @p and 2*
+  drop dup push @p  \ compute EA of the R field
     7
-  pop 2/ 2/ @p
-    0b001100
+  and 2* pop @p     \ save the original field
+    0b110000
   and 2/ 2/
+  2/ 2/
   call  dispatch
   ;                 \ Rn
   jump  postinc     \ (Rn)+
@@ -59,7 +55,10 @@ WIRE(SOUTH, NORTH)
   call ram@   \ ( ea )
   dup @p . +
     2
-  jump ram!
+: ram! ( v -- )
+  @p !b !b ;
+    @p ! . .
+
 
 : ssdd              \ ( opcode -- src dst )
   dup push 2/
@@ -73,9 +72,9 @@ WIRE(SOUTH, NORTH)
     @p a! @ !p
   !b @b ;
 
-: ram! ( v -- )
-  @p !b !b ;
-    @p ! . .
+: fetch  \ fetch next word from PC
+  @p jump ea
+    037
 
 : dispatch
   pop + push ;
