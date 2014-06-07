@@ -13,6 +13,7 @@ WIRE(SOUTH, NORTH)
     WEST
 : loop
   call fetch
+: execute           \ T is an opcode. Execute it
   dup !
   call WEST
   jump loop
@@ -78,3 +79,11 @@ WIRE(SOUTH, NORTH)
 
 : dispatch
   pop + push ;
+
+: branch8           \ compute an 8-bit branch target
+  @p dup push
+    8
+  push
+  2* unext 2*
+  2/ unext ;
+

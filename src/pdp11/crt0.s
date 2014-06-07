@@ -19,6 +19,6 @@ label:
         mfpi r5
         mfpi r6
         mfpi r7
-        jmp label
+        br label
 
         mov 11(sp),100(sp)

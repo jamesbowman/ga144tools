@@ -104,12 +104,26 @@ searchnode()
     .
     jump ram!
 
+  0170000   \ CMP
+  0020000
+    call ssdd
+    .
+    .
+    jump ram!
+
   0
 
 ---------------------------- 607 ----------------------------
   @p b!
     SOUTH
 searchnode()
+
+  0xff00
+  0x0100    \ BR
+    call branch8
+    @p call ram@
+      14
+    + jump ram!
 
   0177700   \ JUMP
   0000100
