@@ -6,7 +6,10 @@ export PYTHONPATH=..:$PYTHONPATH
 export M4PATH=..
 make || exit
 # exit
-python mkpdp.py $PORT benchmark.bin ; exit
+python mkpdp.py $PORT helloworld.bin ; exit
+make helloworld.o &&
+pdp11-aout-ld -o a.out crt0.o helloworld.o &&
+pdp11-aout-objdump -D a.out
 
 # python asm.py $PORT memwrite.ga
 

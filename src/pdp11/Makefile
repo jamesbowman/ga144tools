@@ -3,10 +3,11 @@ CFLAGS=-Os -fomit-frame-pointer -std=c99
 AS=pdp11-aout-as
 LD=pdp11-aout-ld
 
-all: crt0.o triangle.bin benchmark.bin
+all: crt0.o triangle.bin benchmark.bin smoke.bin helloworld.bin
 
 %.bin: %.o
-	$(LD) --oformat binary -o $@ crt0.o $^
+	$(LD) -o a.aout crt0.o $^
+	$(LD) --oformat binary -o $@ a.out
 
 main.o: main.c Makefile
 
