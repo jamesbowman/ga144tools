@@ -105,3 +105,8 @@ WIRE(SOUTH, NORTH)
     @p call ssdd    \ ssdd field for "R7,-(SP)"
       00746
     drop jump ram!
+
+: bit16
+  @p push
+    15
+  2/ unext ;
