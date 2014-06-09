@@ -4,19 +4,6 @@ PORT=/dev/ttyUSB2
 export PATH=/data/pdp11/local/bin:$PATH
 export PYTHONPATH=..:$PYTHONPATH
 export M4PATH=..
+
 make || exit
-# exit
-python mkpdp.py $PORT helloworld.bin ; exit
-make helloworld.o &&
-pdp11-aout-ld -o a.out crt0.o helloworld.o &&
-pdp11-aout-objdump -D a.out
-
-# python asm.py $PORT memwrite.ga
-
-# python ccasm.py counting.cc > lst || exit
-# exit
-# python memload.py /dev/ttyUSB0 bin || exit
-# python asm.py /dev/ttyUSB0 ccpu.ga
-
-# python asm.py /dev/ttyUSB0 memread.ga
-# python draw.py && qiv out.png
+python mkpdp.py $PORT smoke.bin
