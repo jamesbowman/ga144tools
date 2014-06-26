@@ -1,0 +1,26 @@
+
+: searcher
+  
+    table
+: checkloop
+  dup @+ if searcher
+  and @+ or
+  if match
+  drop a @p +
+    4
+  a! jump checkloop
+: match
+  @p push
+    3
+  @+ !b unext
+  jump searcher
+
+: table
+
+
+
+again:
+  !b b@ and
+  2* 2* a!
+  @+ !b unext
+  jmp again
