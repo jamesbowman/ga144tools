@@ -1,0 +1,81 @@
+---------------------------- 508 ----------------------------
+
+  @p b!
+    EAST
+  @p a!
+    WEST
+: loop              \ main execution loop
+  call fetch
+  call WEST
+  jump loop
+
+: ea@               \ ( field -- v )
+  dup push 2* @p    \ compute EA of the R field
+    14
+  and call ram@
+  pop @p     \ save the original field
+    0b111000
+  and 2/ 2/
+  2/ call  case
+  ;                 \ Rn
+  jump  postinc     \ [Rn+]
+  jump  predec      \ [-Rn]
+  call  postinc     \ [[Rn+]]
+  jump  ram@        \ [Rn]
+  jump  indexed     \ [Rn+X]
+  jump  cram@       \ byte[Rn]
+: cpostinc          \ byte[Rn+]
+  dup @p . +
+    1
+  call ram!
+  jump cram@
+
+: indexed           \ X(Rn)
+  call  fetch
+  + jump ram@
+
+: predec \ ( rptr )
+  @p . +
+    -2
+  dup call  ram!
+  jump ram@
+
+: postinc
+  dup @p . +
+    2
+  call ram!
+: ram@ ( a -- v )
+  2/ @p !b
+    @p a! @ !p
+  !b @b ;
+
+: ram! ( v -- )
+  @p !b !b ;
+    @p ! . .
+
+: cram@ ( a -- v )
+  @p !b !b ;
+    @p call 0
+
+: fetch             \ fetch next word from PC by evaluating @(PC)+
+  @p jump ea@
+    037
+
+: case
+  pop + push ;
+
+: offset            \ ( opcode -- disp ) extract branch target -256..254
+  2* @p push
+    5
+  2/ unext ;
+
+                    
+: conditional       \ if T is zero, take the branch in R
+  if notake
+: take
+
+: rconditional      \ if T is nonzero, take the branch in R
+  if take
+: notake
+  drop pop drop ;
+
