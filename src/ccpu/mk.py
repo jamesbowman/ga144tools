@@ -7,15 +7,15 @@ if __name__ == '__main__':
     g = GA144()
     g.loadprogram("vm.ga")
 
-    """
     # Find the symbols in the core that are useful, pre-load them
     # into the fragment nodes
-    for ucnode in ('407', '506', '607'):
+    for ucnode in ('507', ):
         for p,v in g.node['508'].symbols.items():
             if p not in g.node[ucnode].symbols:
                 g.node[ucnode].symbols[p] = v
 
-    g.loadprogram("fragments.ga")
+    # g.loadprogram("fragments.ga")
+    """
 
     # Load the program into node 509
     pn = g.node['509']

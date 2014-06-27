@@ -1,26 +1,82 @@
-
-: searcher
-  
-    table
-: checkloop
-  dup @+ if searcher
-  and @+ or
-  if match
-  drop a @p +
-    4
-  a! jump checkloop
-: match
-  @p push
-    3
-  @+ !b unext
-  jump searcher
-
-: table
-
-
-
-again:
-  !b b@ and
+---------------------------- 507 ----------------------------
+: again
+  !b @b and
   2* 2* a!
   @+ !b unext
-  jmp again
+  jump again
+
+
+  2/ call srcdst    \ MOVE
+  drop
+  .
+  jump ram!
+
+  2/ call srcdst    \ ADD
+  +
+  .
+  jump ram!
+
+  2/ call srcdst    \ SUB
+  - . + 
+  -
+  jump ram!
+
+  2/ call srcdst    \ BIC
+  push - pop
+  and
+  jump ram!
+
+  2/ call srcdst    \ XOR
+  or
+  .
+  jump ram!
+
+  2/ call srcdst    \ ASR
+  drop 2* 2*
+  2/ 2/ 2/
+  jump ram!
+
+  2/ call srcdst    \ ASL
+  drop 2*
+  .
+  jump ram!
+
+  2/ call srcdst    \ CMPU
+  - . + 
+  -
+  ;
+
+  2/ call srcdst    \ CMPS
+  - call oflip
+  call oflip
+  . + - ;
+
+  2/ call srcdst    \ CALL
+  push ! @p
+    037         \ [SP+]
+  pop jump pushit
+
+  2* call offset    \ BRA
+  .
+  .
+  jump take
+
+  2* call offset    \ BEQ
+  over
+  .
+  jump conditional
+
+  2* call offset    \ BNE
+  over
+  .
+  jump rconditional
+
+  2* call offset    \ BLT
+  over @p and
+    10000
+  jump conditional
+
+  2* call offset    \ BGE
+  over @p and
+    10000
+  jump rconditional

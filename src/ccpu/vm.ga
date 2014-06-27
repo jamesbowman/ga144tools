@@ -4,19 +4,45 @@
     EAST
   @p a!
     WEST
+
+  @p dup push dup
+    loop
+  push dup push dup
+  push dup push dup
+  push dup push dup
+  push dup push
+
+: here
+  0
+  0
+  0
+  0
+  0
+  0
+  0
+  0
+
 : loop              \ main execution loop
   call fetch
-  call WEST
-  jump loop
+  jump WEST
 
+: offset            \ ( opcode -- disp ) extract branch target -256..254
+  2* @p push
+    5
+  2/ unext ;
+
+: srcdst            \ ( opcode -- src dst )
+  2/ 2/ 2/ dup
+  push call ea@
+  pop 2/ call offset
 : ea@               \ ( field -- v )
-  dup push 2* @p    \ compute EA of the R field
-    14
-  and call ram@
-  pop @p     \ save the original field
+  dup push @p       \ fetch R
+    7
+  and a! @
+  pop @p and
     0b111000
-  and 2/ 2/
-  2/ call  case
+  2/ 2/ 2/
+  call case
   ;                 \ Rn
   jump  postinc     \ [Rn+]
   jump  predec      \ [-Rn]
@@ -27,8 +53,7 @@
 : cpostinc          \ byte[Rn+]
   dup @p . +
     1
-  call ram!
-  jump cram@
+  ! jump cram@
 
 : indexed           \ X(Rn)
   call  fetch
@@ -37,25 +62,26 @@
 : predec \ ( rptr )
   @p . +
     -2
-  dup call  ram!
-  jump ram@
+  dup !
+: ram@ ( a -- v )
+  2/ @p !b @p
+    @p a! @ !p
+    @p ! . .
+  a! !b @b ;
 
 : postinc
   dup @p . +
     2
-  call ram!
-: ram@ ( a -- v )
-  2/ @p !b
-    @p a! @ !p
-  !b @b ;
+  !  jump ram@
 
 : ram! ( v -- )
-  @p !b !b ;
-    @p ! . .
+  a !b !b ;
 
 : cram@ ( a -- v )
-  @p !b !b ;
+  @p !b !b @p
     @p call 0
+    @p call 1
+  a! @b ;
 
 : fetch             \ fetch next word from PC by evaluating @(PC)+
   @p jump ea@
@@ -64,18 +90,23 @@
 : case
   pop + push ;
 
-: offset            \ ( opcode -- disp ) extract branch target -256..254
-  2* @p push
-    5
-  2/ unext ;
-
-                    
-: conditional       \ if T is zero, take the branch in R
+: conditional       \ ( opcode f -- ) if T is zero, take the branch
   if notake
 : take
+  drop 
+  @p a! @ .
+    7
+  + ! ;
 
-: rconditional      \ if T is nonzero, take the branch in R
+: rconditional      \ ( offset f -- ) if T is nonzero, take the branch in N
   if take
 : notake
-  drop pop drop ;
+  drop drop ;
 
+: oflip ( a b -- a b 'a )   \ number range flip for "cmps"
+  over @p or ;
+    8000
+
+: pushit ( x 37 -- )
+  call ea@
+  drop jump ram!
