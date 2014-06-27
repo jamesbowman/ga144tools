@@ -1,10 +1,25 @@
 ---------------------------- 507 ----------------------------
+
+  @p dup push dup
+    3
+  push dup push dup
+  push dup push dup
+  push dup push dup
+  push dup push
+
+  @p @p
+    0b1111
+    !p . . .
+  over over over
+  over over over
+  over over over
+  over
+
 : again
   !b @b and
   2* 2* a!
   @+ !b unext
   jump again
-
 
   2/ call srcdst    \ MOVE
   drop

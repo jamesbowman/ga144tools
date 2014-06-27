@@ -1,10 +1,5 @@
 ---------------------------- 508 ----------------------------
 
-  @p b!
-    EAST
-  @p a!
-    WEST
-
   @p dup push dup
     loop
   push dup push dup
@@ -49,11 +44,11 @@
   call  postinc     \ [[Rn+]]
   jump  ram@        \ [Rn]
   jump  indexed     \ [Rn+X]
-  jump  cram@       \ byte[Rn]
-: cpostinc          \ byte[Rn+]
-  dup @p . +
-    1
-  ! jump cram@
+: cram@ ( a -- v )  \ byte[Rn]
+  @p !b !b @p
+    @p call 0
+    @p call 1
+  a! @b ;
 
 : indexed           \ X(Rn)
   call  fetch
@@ -64,6 +59,8 @@
     -2
   dup !
 : ram@ ( a -- v )
+  @p b!
+    EAST
   2/ @p !b @p
     @p a! @ !p
     @p ! . .
@@ -75,13 +72,9 @@
   !  jump ram@
 
 : ram! ( v -- )
+  @p and
+    0xffff
   a !b !b ;
-
-: cram@ ( a -- v )
-  @p !b !b @p
-    @p call 0
-    @p call 1
-  a! @b ;
 
 : fetch             \ fetch next word from PC by evaluating @(PC)+
   @p jump ea@
