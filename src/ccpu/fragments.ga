@@ -3,98 +3,99 @@
   @p b!
     EAST
 
-  @p dup push dup
+  @p @p @p @p
     3
-  push dup push dup
-  push dup push dup
-  push dup push dup
-  push dup push
-
-  @p @p
-    0b1111
-    !p . . .
-  over over over
-  over over over
-  over over over
-  over
+    0b111100
+    dup 2* 2* !p
+    call fetch
+  @p @p @p @p
+    3
+    0b111100
+    dup 2* 2* !p
+    call fetch
+  @p @p @p @p
+    3
+    0b111100
+    dup 2* 2* !p
+    call fetch
 
 : again
-  !b @b and
-  2* 2* a!
+  !b !b @b
+  and a! push
   @+ !b unext
   jump again
 
   2/ call srcdst    \ MOVE
   drop
   .
-  jump ram!
+  call result
 
   2/ call srcdst    \ ADD
   +
   .
-  jump ram!
+  call result
 
   2/ call srcdst    \ SUB
   - . + 
   -
-  jump ram!
+  call result
 
   2/ call srcdst    \ BIC
   push - pop
   and
-  jump ram!
+  call result
 
   2/ call srcdst    \ XOR
   or
   .
-  jump ram!
+  call result
 
   2/ call srcdst    \ ASR
   drop 2* 2*
   2/ 2/ 2/
-  jump ram!
+  call result
 
   2/ call srcdst    \ ASL
   drop 2*
   .
-  jump ram!
+  call result
 
   2/ call srcdst    \ CMPU
   - . + 
   -
-  ;
+  .
 
   2/ call srcdst    \ CMPS
   - call oflip
   call oflip
-  . + - ;
+  . + -
 
   2/ call srcdst    \ CALL
   push !b @p
     037             \ [SP+]
-  pop jump pushit
+  pop call pushit
 
   2* call ashr5     \ BRA
   .
   .
-  jump take
+  call take
 
   2* call ashr5     \ BEQ
   over
   .
-  jump conditional
+  call conditional
 
   2* call ashr5     \ BNE
   over
   .
-  jump rconditional
+  call rconditional
 
   2* call ashr5     \ BLT
   over @p and
     0x10000
-  jump conditional
+  call conditional
 
   2* call ashr5     \ BGE
   over @p and
     0x10000
-  jump rconditional
+  call rconditional

@@ -1,85 +1,73 @@
 ---------------------------- 508 ----------------------------
 
-  @p dup push dup
-    loop
-  push dup push dup
-  push dup push dup
-  push dup push dup
-  push dup push
-
 : here
-  0
-  0
-  0
-  0
-  0
-  0
-  0
-  0
-
-: loop              \ main execution loop
-  call fetch
   jump WEST
+  0
+  0
+  0
+  0
+  0
+  0
+  0
 
-: ashr5             \ ( u -- u ) shift left 1, right 6
+: ashr5               \ ( u -- u ) shift left 1, right 6
   2* @p push
     5
   2/ unext ;
 
-: srcdst            \ ( opcode/2 -- src dst )
+: srcdst              \ ( opcode/2 -- src dst )
   2/ 2/ 2/ dup
   push call ea@
   pop 2/ call ashr5
-: ea@               \ ( field -- v )
-  dup push @p       \ fetch R
+: ea@                 \ ( field -- v )
+  dup push @p         \ fetch R
     7
-  and b! @b         \ ( reg ) b points to reg
+  and b! @b           \ ( reg ) b points to reg
   pop @p and
     0b111000
   2/ 2/ 2/
-  call case         \ ( reg ) b points to reg, a is EAST
-  ;                 \ Rn
-  jump  postinc     \ [Rn+]
-  jump  predec      \ [-Rn]
-  call  postinc     \ [[Rn+]]
-  jump  ram@        \ [Rn]
-  jump  indexed     \ [Rn+X]
-: cram@ ( a -- v )  \ byte[Rn]
+  call case           \ ( reg ) b points to reg
+  ;                   \ Rn
+  jump  postinc       \ [Rn+]
+  jump  predec        \ [-Rn]
+  call  postinc       \ [[Rn+]]
+  jump  ram@          \ [Rn]
+  jump  indexed       \ [Rn+X]
+: cram@ ( a -- v )    \ byte[Rn]
   @p @p
-    @p call 0
-    @p call 1
-  jump something
+    @p call 0         \ BYTE read insn
+    @p call 1         \ BYTE write insn
+  jump ramcommon
 
 : predec \ ( rptr )
   @p . +
     -2
   dup !b
 : ram@ ( addr -- v )  \ a is EAST
-  @p @p
-    @p a! @ !p
-    @p ! . .
-: something           \ ( x y z -- v ) EAST into b, z into a, write (y x) to b, read v from b
+  2/ @p @p
+    @p a! @ !p        \ WORD read insn
+    @p ! . .          \ WORD write insn
+: ramcommon           \ ( x y z -- v ) EAST into b, z into a, write (y x) to b, read v from b
   @p b! a!
     EAST
   !b !b @b ;
 
-: indexed           \ X(Rn)
+: indexed
   call  fetch
   + jump ram@
 
+: fetch             \ fetch next word from PC
+  @p b! @b
+    7
 : postinc
   dup @p . +
     2
   !b jump ram@
 
-: ram! ( v -- )
+: result ( v -- )
   @p and
     0xffff
   a !b !b ;
-
-: fetch             \ fetch next word from PC by evaluating @(PC)+
-  @p jump ea@
-    037
 
 : case
   pop + push ;
@@ -103,4 +91,8 @@
 
 : pushit ( x 37 -- )
   call ea@
-  drop jump ram!
+  drop jump result
+
+: debug
+  @p a! ! ;
+    NORTH
