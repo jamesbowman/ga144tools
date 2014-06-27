@@ -21,23 +21,23 @@
   call fetch
   jump WEST
 
-: offset            \ ( opcode -- disp ) extract branch target -256..254
+: ashr5             \ ( u -- u ) shift left 1, right 6
   2* @p push
     5
   2/ unext ;
 
-: srcdst            \ ( opcode -- src dst )
+: srcdst            \ ( opcode/2 -- src dst )
   2/ 2/ 2/ dup
   push call ea@
-  pop 2/ call offset
+  pop 2/ call ashr5
 : ea@               \ ( field -- v )
   dup push @p       \ fetch R
     7
-  and a! @
+  and b! @b         \ ( reg ) b points to reg
   pop @p and
     0b111000
   2/ 2/ 2/
-  call case
+  call case         \ ( reg ) b points to reg, a is EAST
   ;                 \ Rn
   jump  postinc     \ [Rn+]
   jump  predec      \ [-Rn]
@@ -45,31 +45,32 @@
   jump  ram@        \ [Rn]
   jump  indexed     \ [Rn+X]
 : cram@ ( a -- v )  \ byte[Rn]
-  @p !b !b @p
+  @p @p
     @p call 0
     @p call 1
-  a! @b ;
+  jump something
+
+: predec \ ( rptr )
+  @p . +
+    -2
+  dup !b
+: ram@ ( addr -- v )  \ a is EAST
+  @p @p
+    @p a! @ !p
+    @p ! . .
+: something           \ ( x y z -- v ) EAST into b, z into a, write (y x) to b, read v from b
+  @p b! a!
+    EAST
+  !b !b @b ;
 
 : indexed           \ X(Rn)
   call  fetch
   + jump ram@
 
-: predec \ ( rptr )
-  @p . +
-    -2
-  dup !
-: ram@ ( a -- v )
-  @p b!
-    EAST
-  2/ @p !b @p
-    @p a! @ !p
-    @p ! . .
-  a! !b @b ;
-
 : postinc
   dup @p . +
     2
-  !  jump ram@
+  !b jump ram@
 
 : ram! ( v -- )
   @p and
@@ -98,7 +99,7 @@
 
 : oflip ( a b -- a b 'a )   \ number range flip for "cmps"
   over @p or ;
-    8000
+    0x8000
 
 : pushit ( x 37 -- )
   call ea@

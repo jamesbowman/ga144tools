@@ -1,4 +1,7 @@
 ---------------------------- 507 ----------------------------
+  
+  @p b!
+    EAST
 
   @p dup push dup
     3
@@ -67,31 +70,31 @@
   . + - ;
 
   2/ call srcdst    \ CALL
-  push ! @p
-    037         \ [SP+]
+  push !b @p
+    037             \ [SP+]
   pop jump pushit
 
-  2* call offset    \ BRA
+  2* call ashr5     \ BRA
   .
   .
   jump take
 
-  2* call offset    \ BEQ
+  2* call ashr5     \ BEQ
   over
   .
   jump conditional
 
-  2* call offset    \ BNE
+  2* call ashr5     \ BNE
   over
   .
   jump rconditional
 
-  2* call offset    \ BLT
+  2* call ashr5     \ BLT
   over @p and
-    10000
+    0x10000
   jump conditional
 
-  2* call offset    \ BGE
+  2* call ashr5     \ BGE
   over @p and
-    10000
+    0x10000
   jump rconditional
