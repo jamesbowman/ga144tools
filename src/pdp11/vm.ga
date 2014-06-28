@@ -1,20 +1,10 @@
-include(ga144.hdr)
-
-include(708out.hdr)
-
----------------------------- 608 ----------------------------
-WIRE(SOUTH, NORTH)
-
 ---------------------------- 508 ----------------------------
 
   @p b!
     EAST
-  @p a!
-    WEST
 : loop              \ main execution loop
   call fetch
 : execute           \ T is an opcode. Execute it
-  dup !
   call WEST
   jump loop
 
@@ -107,6 +97,13 @@ WIRE(SOUTH, NORTH)
     drop jump ram!
 
 : bit16
-  @p push
-    15
-  2/ unext ;
+\  @p push
+\    15
+\  2/ unext ;
+
+: mul
+  @p @p push
+    0
+    17
+  +* unext a ;
+

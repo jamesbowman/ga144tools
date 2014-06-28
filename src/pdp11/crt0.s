@@ -10,5 +10,12 @@
         mfpi    $0x5555         # Write 5555 to debug
         mfpi    $0xaaaa         # Write aaaa to debug
         jmp     _pdpmain        # That is main
-        .word 64                # Initial SP, above top of RAM
+        .word 128               # Initial SP, above top of RAM
         .word 0                 # Initial PC
+
+        .global ___mulhi3
+___mulhi3:
+        mov     2(sp),r0
+        mov     4(sp),r1
+        mul     r0,r1
+        rts     pc

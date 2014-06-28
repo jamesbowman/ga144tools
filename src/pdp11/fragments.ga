@@ -2,6 +2,8 @@
   @p a!
     EAST
 : main
+  @p !
+    dup !p
   @ dup @p 
     WEST
   b! !b dup @p 
@@ -155,6 +157,13 @@ searchnode()
   0006300
     call ea@
     2*
+    .
+    jump ram!
+
+  0177000   \ MUL
+  0070000
+    call ssdd
+    a! call mul
     .
     jump ram!
 

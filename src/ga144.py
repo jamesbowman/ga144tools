@@ -72,6 +72,7 @@ class Node():
         self.symbols['lsh'] = 0xd9
         self.symbols['rsh'] = 0xdb
         self.symbols.update(self.labels)
+        self.listing = []
         row = int(name[0])
         col = int(name[1:3])
         if (row & 1) == 1:
@@ -133,6 +134,7 @@ class Node():
 
     def log(self, msg):
         print msg
+        self.listing.append(msg)
 
     def pass0_term(self, n):
         return 0
@@ -224,6 +226,7 @@ class Node():
                     self.lst('%02x:           %s' % (len(ops), ol))
         self.prefix = prefix + [self.assemble("jump 0".split())]
         self.load_pgm = ops
+        self.bgcolor = (0, 0, .1)
 
     def pump(self, path):
         # print 'pump', self.name
@@ -251,6 +254,57 @@ class Node():
                   self.assemble("@p !+ unext".split())] + self.load_pgm
             r += self.prefix
         return r
+
+    # These methods are all for rendering the node using Cairo
+
+    def xy(self, r, c):
+        return (60 + c * 65, 600 - r * 80)
+
+    def rect(self, ctx, x, y, w, h):
+        ctx.move_to(x, y)
+        ctx.line_to(x + w, y)
+        ctx.line_to(x + w, y + h)
+        ctx.line_to(x, y + h)
+        ctx.close_path()
+
+    def center(self, r, c):
+        return (60 + c * 65 + (55.0 / 2), 600 - r * 80 + (70.0 / 2))
+
+    bgcolor = (0, 0, 0)
+    def render(self, ctx, cairo):
+        r = int(self.name[0])
+        c = int(self.name[1:])
+
+        (x, y) = self.xy(r, c)
+
+        (w, h) = (55, 70)
+
+        ctx.set_source_rgb(*self.bgcolor)
+        self.rect(ctx, x, y, w, h)
+        ctx.fill()
+
+        ctx.save()
+        ctx.set_line_width(4)
+        ctx.set_line_join(cairo.LINE_JOIN_ROUND)
+        self.rect(ctx, x, y, w, h)
+        ctx.stroke()
+        ctx.set_source_rgba(1, 1, 1, 0.1)
+        self.rect(ctx, x, y, w, h)
+        ctx.stroke()
+
+        (_, _, tw, th, _, _) = ctx.text_extents(self.name)
+        ctx.set_source_rgba(1, 1, 1, 0.4)
+        ctx.move_to(x + ((w - tw) / 2), y + th)
+        ctx.show_text(self.name)
+
+        if 1:
+            ctx.set_source_rgba(1, 1, 1, 1)
+            ctx.set_font_size(0.3)
+            for i,l in enumerate(self.listing[1:]):
+                ctx.move_to(x + 4, y + th + 0.5 * i)
+                ctx.show_text(l)
+
+        ctx.restore()
 
 class GA144:
     def __init__(self):
@@ -311,6 +365,10 @@ class GA144:
                   ((n >> 10) & 0xff)]
         return "".join([chr(c ^ 0xff) for c in r])
 
+    paint_color = (0, 0, .1)
+    def paint(self, color):
+        self.paint_color = color
+
     def loadprogram(self, sourcefile):
         code = {}
         c = []
@@ -325,9 +383,14 @@ class GA144:
                 c.append(l)
         for n,c in sorted(code.items()):
             self.node[n].load("".join(c))
+            self.node[n].bgcolor = self.paint_color
 
     def active(self):
         return [id for (id,n) in self.node.items() if n.isactive()]
+
+    def render(self, ctx, cairo):
+        for n in self.node.values():
+            n.render(ctx, cairo)
 
     def download(self, port, speed, listen = True):
         import serial
@@ -337,6 +400,7 @@ class GA144:
         self.announce("DOWNLOAD COMPLETE")
         if not listen:
             time.sleep(0.1)
+        t0 = time.time()
         while listen:
             s = ser.read(4)
             (v, ) = struct.unpack("<I", s)

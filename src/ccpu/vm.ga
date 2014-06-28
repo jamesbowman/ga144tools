@@ -2,12 +2,12 @@
 
 : here
   jump WEST
+  100
+  200
   0
   0
   0
-  0
-  0
-  0
+  128
   0
 
 : ashr5               \ ( u -- u ) shift left 1, right 6
@@ -33,11 +33,8 @@
   call  postinc       \ [[Rn+]]
   jump  ram@          \ [Rn]
   jump  indexed       \ [Rn+X]
-: cram@ ( a -- v )    \ byte[Rn]
-  @p @p
-    @p call 0         \ BYTE read insn
-    @p call 1         \ BYTE write insn
-  jump ramcommon
+  jump  cram@         \ byte[Rn]
+  b! ;                \ hw[Rn]
 
 : predec \ ( rptr )
   @p . +
@@ -51,6 +48,10 @@
   @p b! a!
     EAST
   !b !b @b ;
+: cram@ ( a -- v )    \ byte[Rn]
+  @p @p jump ramcommon
+    @p call 0         \ BYTE read insn
+    @p call 1         \ BYTE write insn
 
 : indexed
   call  fetch
@@ -72,15 +73,16 @@
 : case
   pop + push ;
 
-: conditional       \ ( opcode f -- ) if T is zero, take the branch
+: conditional       \ ( opcode f -- ) if T is nonzero, take the branch
   if notake
 : take
   drop 
+: dobra
   @p a! @ .
     7
   + ! ;
 
-: rconditional      \ ( offset f -- ) if T is nonzero, take the branch in N
+: rconditional      \ ( offset f -- ) if T is zero, take the branch in N
   if take
 : notake
   drop drop ;
@@ -92,7 +94,3 @@
 : pushit ( x 37 -- )
   call ea@
   drop jump result
-
-: debug
-  @p a! ! ;
-    NORTH

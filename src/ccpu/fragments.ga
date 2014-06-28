@@ -1,5 +1,5 @@
 ---------------------------- 507 ----------------------------
-  
+
   @p b!
     EAST
 
@@ -71,14 +71,14 @@
   . + -
 
   2/ call srcdst    \ CALL
-  push !b @p
-    037             \ [SP+]
-  pop call pushit
+  push !b pop @p
+    026             \ [-sp]
+  call pushit
 
   2* call ashr5     \ BRA
   .
   .
-  call take
+  call dobra
 
   2* call ashr5     \ BEQ
   over
@@ -88,14 +88,19 @@
   2* call ashr5     \ BNE
   over
   .
-  call rconditional
+  call conditional
 
   2* call ashr5     \ BLT
   over @p and
     0x10000
-  call conditional
-
-  2* call ashr5     \ BGE
-  over @p and
-    0x10000
   call rconditional
+
+\   2* call ashr5     \ BGE
+\   over @p and
+\     0x10000
+\   call rconditional
+
+  2/ call srcdst    \ EMIT
+  drop @p a!
+    NORTH
+  !

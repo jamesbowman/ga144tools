@@ -1,4 +1,4 @@
 export PATH=/data/pdp11/local/bin:$PATH
 export PYTHONPATH=..:$PYTHONPATH
 export M4PATH=..
-python mk.py
+python mk.py /dev/ttyUSB2

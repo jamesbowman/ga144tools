@@ -1,9 +1,9 @@
 CC=pdp11-aout-gcc
-CFLAGS=-Os -fomit-frame-pointer -std=c99
+CFLAGS=-Os -fomit-frame-pointer -std=c99 -m10
 AS=pdp11-aout-as
 LD=pdp11-aout-ld
 
-all: crt0.o triangle.bin benchmark.bin smoke.bin helloworld.bin
+all: crt0.o triangle.bin benchmark.bin smoke.bin helloworld.bin factorial.bin fibonacci.bin
 
 %.bin: %.o
 	$(LD) -o a.out crt0.o $^
