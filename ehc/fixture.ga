@@ -1,0 +1,138 @@
+\
+\ +---------+  +---------+  +---------+  +---------+
+\ |         |  |         |  |         |  |         |
+\ |   706   |--|   707   |--|   708   |--|   709   |
+\ |         |  |         |  |         |  |         |
+\ +---------+  +---------+  +---------+  +---------+
+\      |                         |            |    
+\ +---------+               +---------+  +---------+
+\ |         |               |         |  |         |
+\ |   606   |               |   608   |  |   609   |
+\ |         |               |    S    |  |         |
+\ +---------+               +---------+  +---------+
+\      |                         |            |    
+\ +---------+  +---------+  +---------+  +---------+
+\ |         |  |         |  |         |  |         |
+\ |   506   |--|   507   |--|   508   |--|   509   |
+\ |         |  |    S    |  |    T    |  |    S    |
+\ +---------+  +---------+  +---------+  +---------+
+\      |                         |                           
+\ +---------+  +---------+  +---------+
+\ |         |  |         |  |         |
+\ |   406   |--|   407   |--|   408   |
+\ |         |  |         |  |    S    |
+\ +---------+  +---------+  +---------+
+
+                                               
+dnl WIRE21(node, src, dst)  \ Carry a 2+1 packet from src to dst
+define(WIRE21, `
+---------------------------- $1 ----------------------------
+
+    @p a! @p
+        $2
+        $3
+    b!
+: again
+    @ !b
+    @ !b
+    @b !
+    jump again
+
+')
+
+WIRE21(706, EAST, SOUTH)
+WIRE21(707, EAST, WEST)
+WIRE21(709, WEST, SOUTH)
+
+WIRE21(606, NORTH, SOUTH)
+WIRE21(609, NORTH, SOUTH)
+WIRE21(506, NORTH, EAST_SOUTH)
+WIRE21(406, NORTH, EAST)
+WIRE21(407, WEST, EAST)
+
+define(jz, if)
+dnl S(node, src, dst)
+define(S, `
+---------------------------- $1 ----------------------------
+    @p a! @p
+        $2
+        $3
+    b!
+: again
+    @ @ dup
+    2* 2/ @p
+      $1
+    or jz itsme
+    jump again
+: itsme
+    drop
+    -if isread
+    drop !b
+    @p !
+      777
+    jump again
+: isread
+    @b !
+    jump again
+')
+
+S(507, WEST, EAST)
+S(608, NORTH, SOUTH)
+S(509, NORTH, WEST)
+S(408, WEST, NORTH)
+
+---------------------------- 708 ----------------------------
+: cold
+    @p a! !
+      63
+    @p b! @p @p
+    0x15d
+    0x80
+    63
+    push a!
+
+    @p a!
+        EAST_SOUTH_WEST
+
+: debug
+    call recv18
+    ! call recv18
+    !
+    @ call emit
+    jump debug
+
+: again
+    jump again
+
+: recv18
+    call 0xcb
+    drop ;
+
+: emit18 ( x -- x)
+    @p call emit8
+    0xa5
+    drop call emit8
+    call emit8
+: emit8
+    @p call bit
+    0
+    @p push
+    7
+: bloop
+    dup call bit
+    2/ next bloop
+
+    call bit1
+: bit1
+    @p
+    1
+: bit
+    @p and @p @p
+    1
+    3
+    865 \ 3460 for 115200
+    push or !b
+    unext ;
+: emit
+    call emit18
+    drop ;

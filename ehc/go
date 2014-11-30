@@ -1,0 +1,26 @@
+PORT=/dev/tty.usbserial-000013FA
+PORT=/dev/ttyUSB2
+
+PYTHONPATH=../src
+python unit.py /dev/ttyUSB0 zero.ga
+exit
+
+# python asm.py $PORT helloworld.ga ; exit
+# python asm.py $PORT fibonacci.ga ; exit
+# python asm.py $PORT mathdemo.ga ; exit
+# python asm.py $PORT vga.ga ; exit
+
+export PATH=data/pdp11/local/bin:$PATH
+make || exit
+# exit
+python mkpdp.py $PORT ; exit
+
+# python asm.py $PORT memwrite.ga
+
+# python ccasm.py counting.cc > lst || exit
+# exit
+# python memload.py /dev/ttyUSB0 bin || exit
+# python asm.py /dev/ttyUSB0 ccpu.ga
+
+# python asm.py /dev/ttyUSB0 memread.ga
+# python draw.py && qiv out.png
