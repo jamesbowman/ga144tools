@@ -5,10 +5,10 @@ import serial
 from ga144 import GA144
 
 def trivial(load, send, recv):
-    print 'setup', load, send, recv
     load("trivial.ga")
-    send('EAST', 100)
-    assert(recv('EAST') == 107)
+    # send('SOUTH', 100)
+
+    print recv('SOUTH')
 
 if __name__ == '__main__':
     # v = draw.Viz(g.active())
@@ -26,18 +26,21 @@ if __name__ == '__main__':
         g.node['508'].load(open(sourcefile).read())
         ser.write(g.async())
         ser.flush()
+        # print "\n".join(g.node['608'].listing)
 
     def xfer(addr, din):
+        print hex(din), addr
         ser.write(g.sget([din, addr]))
         s = ser.read(4)
         (v, ) = struct.unpack("<I", s)
         assert (v & 0xff) == 0xa5
         return (v >> 8) & 0x3ffff
     dirs = {
+        "OTHER" : 999,
         "NORTH" : 608,
-        "EAST" : 509,
+        "EAST"  : 509,
         "SOUTH" : 408,
-        "WEST" : 507}
+        "WEST"  : 507}
     def send(node, din):
         xfer(0x20000 | dirs[node], din)
     def recv(node):

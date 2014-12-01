@@ -1,4 +1,34 @@
+\ Test fixture.
 \
+\ Node 508 is the test node T, loaded with whatever is being tested.
+\ Its immediate neighbors are the stimulus nodes, S.
+\ The other nodes in the network are broadcast - they carry the stimulus
+\ downstream and then ferry the response back.
+\ Node 708 is the UART. It carries stimulus/response packets between the
+\ UART pins and its immediate neighbors.
+\ A stimulus packet is two 18-bit words:
+\
+\    din
+\    address
+\
+\ The low part of address is a node number, and the high part indicates write or read.
+\ If the high bit is 1, the transaction is a write, and din is written to node T.
+\ If the high bit is 0, the transaction is a read. din is discarded, and a word is read from T.
+\ So to send a word 12345 to T on its WEST port:
+\
+\    12345
+\    0x20000 | 507
+\
+\ And to read a word from T on its NORTH port:
+\
+\    xxxxx
+\    608
+\
+\
+\                                |
+\                                |
+\                                |
+\                                |
 \ +---------+  +---------+  +---------+  +---------+
 \ |         |  |         |  |         |  |         |
 \ |   706   |--|   707   |--|   708   |--|   709   |
@@ -46,14 +76,33 @@ WIRE21(709, WEST, SOUTH)
 
 WIRE21(606, NORTH, SOUTH)
 WIRE21(609, NORTH, SOUTH)
-WIRE21(506, NORTH, EAST_SOUTH)
+dnl WIRE21(506, NORTH, SOUTH)
 WIRE21(406, NORTH, EAST)
 WIRE21(407, WEST, EAST)
+
+---------------------------- 506 ----------------------------
+
+    @p a!
+      NORTH
+: again
+    @p b!
+      SOUTH
+    @ !b
+    @ !b
+
+    @p b! @b
+      SOUTH
+    \ @p b! @b
+    \   EAST
+    \ or
+    !
+    jump again
 
 define(jz, if)
 dnl S(node, src, dst)
 define(S, `
 ---------------------------- $1 ----------------------------
+: cold
     @p a! @p
         $2
         $3
@@ -62,7 +111,7 @@ define(S, `
     @ @ dup
     2* 2/ @p
       $1
-    or jz itsme
+    or if itsme
     jump again
 : itsme
     drop
@@ -110,7 +159,7 @@ S(408, WEST, NORTH)
 
 : emit18 ( x -- x)
     @p call emit8
-    0xa5
+      0xa5
     drop call emit8
     call emit8
 : emit8

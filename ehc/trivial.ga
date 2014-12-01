@@ -1,8 +1,28 @@
-    @p a!
-        EAST
 : again
-    @ @p . +
-      7
+    @p a!
+        SOUTH
+    @p !
+      1001
+
+    @p a!
+        WEST
+    @p !
+      1002
+
+    jump again
+
+
+    @ @p a!
+        SOUTH
+    ! jump again
+    @ @p a!
+        SOUTH
+    !
+    @ @p a!
+        WEST
+    !
+    @ @p a!
+        NORTH
     !
     jump again
 
