@@ -1,39 +1,27 @@
+\ trivial node, for validating the test fixture:
+\
+\   reads from NORTH, sends to EAST
+\   reads from EAST, sends to SOUTH
+\   reads from SOUTH, sends to WEST
+\   reads from WEST, sends to NORTH
+
+    @p a!
+        NORTH
 : again
-    @p a!
-        NORTH
-    @p !
-      0x1001
-
-    @p a!
+    @
+    @p a! !
         EAST
-    @p !
-      0x1002
 
-    @p a!
+    @
+    @p a! !
         SOUTH
-    @p !
-      0x1003
 
-    @p a!
+    @
+    @p a! !
         WEST
-    @p !
-      0x1004
 
-    jump again
-
-
-
-    @ @p a!
-        SOUTH
-    ! jump again
-    @ @p a!
-        SOUTH
-    !
-    @ @p a!
-        WEST
-    !
-    @ @p a!
+    @
+    @p a! !
         NORTH
-    !
-    jump again
 
+    jump again

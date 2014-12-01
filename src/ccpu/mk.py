@@ -42,14 +42,18 @@ def asm1(pc, symbols, line):
 benchmark = """
         emit [pc+]
          # 0x1111
-        mov  r4,[pc+]
+        mov     r4,[pc+]
          # 1
-        mov  r1,[pc+]
+        mov     r2,[pc+]
+         # 256
+outer:
+        mov     r1,[pc+]
          # 0
 inner:
-        sub  r1,r4
-        cmpu r1,r3
-        bne inner
+        sub     r1,r4
+        bne     inner
+        sub     r2,r4
+        bne     outer
         emit [pc+]
           # 0x2222
 again:
@@ -71,7 +75,7 @@ again:
         bra again
 """
 
-code = """
+callreturn = """
         mov     [-sp],r2
         call    pc,[pc+]
             # 10
@@ -89,6 +93,8 @@ func:
         mov     pc,[sp+]
     
 """
+
+code = benchmark
 
 def assemble(code):
     pgm = []

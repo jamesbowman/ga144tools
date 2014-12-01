@@ -25,6 +25,11 @@
 \    608
 \
 \
+\ Nodes 708 and 506 are amplifiers/collectors. They broadcast the outgoing
+\ command and collect responses. For this to work, the S nodes always respond
+\ with *something*, either a read response or zero. The collector nodes then
+\ sum all the responses.
+\
 \                                |
 \                                |
 \                                |
@@ -94,8 +99,7 @@ WIRE21(407, WEST, EAST)
       EAST
     @p b! @b
       SOUTH
-    . +
-    !
+    or !
     jump again
 
 define(jz, if)

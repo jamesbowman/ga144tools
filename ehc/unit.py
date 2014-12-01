@@ -6,13 +6,16 @@ from ga144 import GA144
 
 def trivial(load, send, recv):
     load("trivial.ga")
-    # send('SOUTH', 100)
 
-    for i in range(2):
-        print hex(recv('NORTH'))
-        print hex(recv('EAST'))
-        print hex(recv('SOUTH'))
-        print hex(recv('WEST'))
+    for i in range(4):
+        send('NORTH', 100)
+        assert 100 == recv('EAST')
+        send('EAST', 200)
+        assert 200 == recv('SOUTH')
+        send('SOUTH', 300)
+        assert 300 == recv('WEST')
+        send('WEST', 400)
+        assert 400 == recv('NORTH')
 
 if __name__ == '__main__':
     # v = draw.Viz(g.active())
