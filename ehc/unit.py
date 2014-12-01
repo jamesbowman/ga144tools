@@ -8,7 +8,11 @@ def trivial(load, send, recv):
     load("trivial.ga")
     # send('SOUTH', 100)
 
-    print recv('SOUTH')
+    for i in range(2):
+        print hex(recv('NORTH'))
+        print hex(recv('EAST'))
+        print hex(recv('SOUTH'))
+        print hex(recv('WEST'))
 
 if __name__ == '__main__':
     # v = draw.Viz(g.active())
@@ -29,7 +33,7 @@ if __name__ == '__main__':
         # print "\n".join(g.node['608'].listing)
 
     def xfer(addr, din):
-        print hex(din), addr
+        # print hex(din), addr
         ser.write(g.sget([din, addr]))
         s = ser.read(4)
         (v, ) = struct.unpack("<I", s)

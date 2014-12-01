@@ -1,15 +1,26 @@
 : again
     @p a!
+        NORTH
+    @p !
+      0x1001
+
+    @p a!
+        EAST
+    @p !
+      0x1002
+
+    @p a!
         SOUTH
     @p !
-      1001
+      0x1003
 
     @p a!
         WEST
     @p !
-      1002
+      0x1004
 
     jump again
+
 
 
     @ @p a!

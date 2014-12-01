@@ -86,15 +86,15 @@ WIRE21(407, WEST, EAST)
       NORTH
 : again
     @p b!
-      SOUTH
+      EAST_SOUTH
     @ !b
     @ !b
 
     @p b! @b
+      EAST
+    @p b! @b
       SOUTH
-    \ @p b! @b
-    \   EAST
-    \ or
+    . +
     !
     jump again
 
@@ -112,13 +112,15 @@ define(S, `
     2* 2/ @p
       $1
     or if itsme
+    @p !
+      0
     jump again
 : itsme
     drop
     -if isread
     drop !b
     @p !
-      777
+      7
     jump again
 : isread
     @b !
@@ -140,14 +142,20 @@ S(408, WEST, NORTH)
     63
     push a!
 
+: debug
     @p a!
         EAST_SOUTH_WEST
-
-: debug
     call recv18
     ! call recv18
     !
-    @ call emit
+    @p a! @
+      EAST
+    @p a! @
+      SOUTH
+    @p a! @
+      WEST
+    or or
+    call emit
     jump debug
 
 : again
