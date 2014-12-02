@@ -17,6 +17,19 @@ def trivial(load, send, recv):
         send('WEST', 400)
         assert 400 == recv('NORTH')
 
+def packer(load, send, recv):
+    load("packer.ga")
+    for x in (0, 511, 512, 513, 0x3ffff, 0x35555):
+        send("EAST", x >> 9)
+        send("EAST", x & 511)
+        print hex(recv("WEST"))
+
+def dryrun(load, send, recv):
+    load("b00.ga")
+    print hex(recv("EAST"))
+    print hex(recv("EAST"))
+    print hex(recv("EAST"))
+
 if __name__ == '__main__':
     # v = draw.Viz(g.active())
     # v.render("pictures/%s.png" % sys.argv[2])
@@ -56,7 +69,11 @@ if __name__ == '__main__':
     t0 = time.time()
 
     tests = [
-        trivial
+        trivial,
+        packer,
+        # dryrun,
     ]
     for t in tests:
         t(load, send, recv)
+        print t.__name__
+        print "\n".join(g.node['508'].listing)

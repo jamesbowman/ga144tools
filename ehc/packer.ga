@@ -1,0 +1,12 @@
+\ accepts (hi9, lo9) from EAST, merges to WEST
+
+    @p a! @p
+        EAST
+        WEST
+    b!
+: again
+    @ 2* 2*
+    2* 2* 2*
+    2* 2* 2*
+    2* @ or
+    !b jump again
