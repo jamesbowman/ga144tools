@@ -395,6 +395,7 @@ class GA144:
     def download(self, port, speed, listen = True):
         import serial
         ser = serial.Serial(port, speed)
+        ser.dsrdtr = True
         ser.write(self.async())
         ser.flush()
         self.announce("DOWNLOAD COMPLETE")
