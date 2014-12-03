@@ -6,4 +6,4 @@ export PYTHONPATH=..:$PYTHONPATH
 export M4PATH=..
 
 make || exit
-python mkpdp.py $PORT factorial.bin
+python mkpdp.py $PORT helloworld.bin

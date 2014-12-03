@@ -65,8 +65,8 @@
     2
   !b jump ram@
 
-: result ( v -- )
-  @p and
+: result ( v -- v )
+  dup @p and
     0xffff
   a !b !b ;
 

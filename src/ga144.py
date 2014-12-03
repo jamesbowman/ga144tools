@@ -133,7 +133,7 @@ class Node():
         self.bad_dest = [self.bad_dest_0, self.bad_dest_1][p]
 
     def log(self, msg):
-        print msg
+        # print msg
         self.listing.append(msg)
 
     def pass0_term(self, n):
@@ -345,9 +345,9 @@ class GA144:
 
         n708 = self.node['708'].load_pgm
         r += [0x000, 0, len(n708)] + n708
-        print 'path', len(path)
+        # print 'path', len(path)
         r += self.poststream
-        print 'bootstream is', len(r), 'words'
+        # print 'bootstream is', len(r), 'words'
         return r
 
     poststream = []
@@ -355,15 +355,21 @@ class GA144:
     def announce(self, msg):
         print ("  " + msg + "  ").center(40, "-")
 
-    def async(self):
-        bs = self.bootstream()
-        # print " ".join(["%05x" % x for x in bs])
+    def sget(self, bs):
+        """ bs is a list of 18-bit numbers. Return it formatted for async
+        node 708's "sget" function """
+
         r = []
         for n in bs:
             r += [((n << 6) & 0xc0) | 0x2d,
                   ((n >> 2) & 0xff),
                   ((n >> 10) & 0xff)]
         return "".join([chr(c ^ 0xff) for c in r])
+
+    def async(self):
+        bs = self.bootstream()
+        # print " ".join(["%05x" % x for x in bs])
+        return self.sget(bs)
 
     paint_color = (0, 0, .1)
     def paint(self, color):
@@ -415,6 +421,9 @@ class GA144:
                 if (v & 0xffff) == 0x1111:
                     t0 = time.time()
                 if (v & 0xffff) == 0x2222:
-                    print 'took', time.time() - t0
+                    # print 'took', time.time() - t0
+                    print 'respond'
+                    ser.write(self.sget([1]))
+                    # ser.flush()
                 if v == 0x00947:
                     return
