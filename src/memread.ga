@@ -1,12 +1,7 @@
 include(ga144.hdr)
 
 ---------------------------- 708 ----------------------------
-    @p b! @p @p
-    0x15d
-    0x80
-    63
-    push a!
-
+: cold
     @p a!
         SOUTH
     @p push
@@ -17,7 +12,7 @@ include(ga144.hdr)
     drop next dump
 
     @p call emit18
-    0x00947
+        0x00947
 
 : again
     jump again
@@ -69,7 +64,6 @@ WIRE(SOUTH, NORTH)
 ---------------------------- 008 ----------------------------
 \ GPIO 1 is CE
 \ GPIO 3 is WE
-
     @p a! @p
       io
       0b100000000000101110
@@ -96,10 +90,8 @@ WIRE(SOUTH, NORTH)
     jump again
 
 ---------------------------- 007 ----------------------------
-    @p a! @p
-      io
+    @p !b
       0x0000
-    !
     @p @p
       EAST
       data
@@ -109,10 +101,4 @@ WIRE(SOUTH, NORTH)
     jump ok
 
 ---------------------------- 009 ----------------------------
-    @p a! @p
-      WEST
-      data
-    b!
-: ok
-    @ !b
-    jump ok
+WIRE(WEST, data)

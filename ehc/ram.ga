@@ -1,0 +1,146 @@
+\ RAM
+\
+\
+\ +---------+
+\ |         |
+\ |   708   |
+\ |         |
+\ +---------+
+\      |     
+\ +---------+
+\ |         |
+\ |   608   |
+\ |         |
+\ +---------+
+\      |     
+\ +---------+
+\ |         |
+\ |   508   |
+\ |         |
+\ +---------+
+\      |     
+\ +---------+
+\ |         |
+\ |   408   |
+\ |         |
+\ +---------+
+\      |     
+\ +---------+
+\ |         |
+\ |   308   |
+\ |         |
+\ +---------+
+\      |     
+\ +---------+
+\ |         |
+\ |   208   |
+\ |         |
+\ +---------+
+\      |     
+\ +---------+
+\ |         |
+\ |   108   |
+\ |         |
+\ +---------+
+\      |     
+\ +---------+
+\ |         |
+\ |   008   |
+\ |         |
+\ +---------+
+
+include(../src/ga144.hdr)
+
+dnl WIRE21(node, src, dst)  \ Carry a 2+1 packet from src to dst
+define(WIRE21, `
+---------------------------- $1 ----------------------------
+
+    @p a! @p
+        $2
+        $3
+    b!
+: again
+    @ !b
+    @ !b
+    @b !
+    jump again
+
+')
+
+WIRE21(608, NORTH, SOUTH)
+WIRE21(508, NORTH, SOUTH)
+WIRE21(408, NORTH, SOUTH)
+WIRE21(308, NORTH, SOUTH)
+WIRE21(208, NORTH, SOUTH)
+
+---------------------------- 108 ----------------------------
+
+    @p a! @p
+        NORTH
+        SOUTH
+    b!
+: again
+    @ @
+    \ -ve write, + read
+    -if doread
+    drop !b
+    !
+    jump again
+: doread
+    @b !
+    jump again
+
+---------------------------- 708 ----------------------------
+: cold
+    @p b! @p
+    0x15d
+    SOUTH
+    a!
+
+: debug
+    call recv18
+    ! call recv18
+    !
+    @
+    call emit
+    jump debug
+
+: recv18
+    call 0xcb
+    drop ;
+
+: emit18 ( x -- x)
+    @p call emit8
+      0xa5
+    drop call emit8
+    call emit8
+: emit8
+    @p call bit
+    0
+    @p push
+    7
+: bloop
+    dup call bit
+    2/ next bloop
+
+    call bit1
+: bit1
+    @p
+    1
+: bit
+    @p and @p @p
+    1
+    3
+    865 \ 3460 for 115200
+    push or !b
+    unext ;
+: emit
+    call emit18
+    drop ;
+
+---------------------------- 008 ----------------------------
+    @p a!
+      NORTH
+: again
+    @ - !
+    jump again

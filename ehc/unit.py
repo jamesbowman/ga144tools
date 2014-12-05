@@ -85,3 +85,10 @@ if __name__ == '__main__':
     for t in node1tests:
         print t.__name__
         t(load1, send, recv)
+
+    g.loadprogram('ram.ga')
+    ser.setRTS(0)   # Reboot by dropping RTS
+    ser.setRTS(1)
+    g.download(sys.argv[1], 460800, listen = False)
+    send("OTHER", ~101)
+    print recv("OTHER")
