@@ -158,6 +158,7 @@ WIRE21(208, NORTH, SOUTH)
 : again
     @b call case
     jump  read
+    jump  write
 
 : case
   pop + push ;
@@ -174,19 +175,48 @@ WIRE21(208, NORTH, SOUTH)
     . . . .
     @p a!
       WEST
-    ! @
+    @p ! @
+      @ !p
     !b jump again
 
+: write
+    @b
+    @p a! !
+      EAST
+    @p a!
+      WEST
+    @p !
+      @p !b
+    @p !
+      0x1000
+    @p !
+      @p !
+    @b !
+    @p a! @p @p
+      io
+      0b100000000000101110
+      0b100000000000101010
+    !
+    . . . .
+    . . . .
+    . . . .
+    . . . .
+    . . . .
+    . . . .
+    !
+    @p a!
+      WEST
+    @p !
+      dup or !b
+    jump again
+
 ---------------------------- 007 ----------------------------
+: cold
     @p !b
       0x0000
-    @p @p
-      EAST
+    @p a!
       data
-    b! a!
-: ok
-    @ @b !
-    jump ok
+    jump EAST
 
 ---------------------------- 009 ----------------------------
 WIRE(WEST, data)
