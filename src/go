@@ -1,6 +1,9 @@
 # python galois.py ; exit
 PORT=/dev/tty.usbserial-000013FA
 PORT=/dev/ttyUSB2
+python memload.py $PORT test
+python asm.py $PORT memread.ga
+exit
 
 python asm.py /dev/ttyUSB0 fibonacci.ga
 exit
@@ -14,8 +17,6 @@ export PATH=data/pdp11/local/bin:$PATH
 make || exit
 # exit
 python mkpdp.py $PORT ; exit
-
-# python asm.py $PORT memwrite.ga
 
 # python ccasm.py counting.cc > lst || exit
 # exit

@@ -1,8 +1,12 @@
 PORT=/dev/tty.usbserial-000013FA
-PORT=/dev/ttyUSB2
+PORT=/dev/ttyUSB1
 
-PYTHONPATH=../src
-python unit.py /dev/ttyUSB0 zero.ga
+python cook.py b00 > b00.ga || exit
+python cook.py b01 > b01.ga || exit
+python cook.py b02 > b02.ga || exit
+
+export PYTHONPATH=../src
+python unit.py $PORT zero.ga
 exit
 
 # python asm.py $PORT helloworld.ga ; exit

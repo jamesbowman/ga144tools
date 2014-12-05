@@ -22,13 +22,19 @@ def packer(load, send, recv):
     for x in (0, 511, 512, 513, 0x3ffff, 0x35555):
         send("EAST", x >> 9)
         send("EAST", x & 511)
-        print hex(recv("WEST"))
+        assert recv("WEST") == x
 
 def dryrun(load, send, recv):
-    load("b00.ga")
-    print hex(recv("EAST"))
-    print hex(recv("EAST"))
-    print hex(recv("EAST"))
+    # load("b01.ga", verbose = 1)
+    b = 0
+    while True:
+        load("b%02d.ga" % b)
+        if b == 2:
+            print recv('NORTH')
+            break
+        b = recv("WEST")
+        print 'next', b
+        # for i in range(8): print 'r%d  ' % i, (recv("WEST"))
 
 if __name__ == '__main__':
     # v = draw.Viz(g.active())
@@ -37,13 +43,16 @@ if __name__ == '__main__':
     ser = serial.Serial(sys.argv[1], 460800)
 
     g = GA144()
-    def load(sourcefile):
+    def load1(sourcefile, verbose = 0):
         ser.setRTS(0)   # Reboot by dropping RTS
         ser.setRTS(1)
         g.__init__()
         g.log = lambda a,b:None
         g.loadprogram('fixture.ga')
         g.node['508'].load(open(sourcefile).read())
+        if verbose:
+            print "\n".join(g.node['508'].listing)
+            print
         ser.write(g.async())
         ser.flush()
         # print "\n".join(g.node['608'].listing)
@@ -68,12 +77,11 @@ if __name__ == '__main__':
 
     t0 = time.time()
 
-    tests = [
+    node1tests = [
         trivial,
         packer,
         # dryrun,
     ]
-    for t in tests:
-        t(load, send, recv)
+    for t in node1tests:
         print t.__name__
-        print "\n".join(g.node['508'].listing)
+        t(load1, send, recv)
