@@ -90,5 +90,7 @@ if __name__ == '__main__':
     ser.setRTS(0)   # Reboot by dropping RTS
     ser.setRTS(1)
     g.download(sys.argv[1], 460800, listen = False)
-    send("OTHER", ~101)
-    print recv("OTHER")
+    for a in range(10):
+        send("OTHER", 1)
+        send("OTHER", a)
+        print hex(recv("OTHER"))

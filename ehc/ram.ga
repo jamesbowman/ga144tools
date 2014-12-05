@@ -138,9 +138,55 @@ WIRE21(208, NORTH, SOUTH)
     call emit18
     drop ;
 
+\ ---------------------------- 008 ----------------------------
+\     @p a!
+\       NORTH
+\ : again
+\     @ - !
+\     jump again
+
+\ RAM http://www.cypress.com/?docID=45536
+
 ---------------------------- 008 ----------------------------
-    @p a!
+\ GPIO 1 is CE
+\ GPIO 3 is WE
+    @p a! @p
+      io
+      0b100000000000101110
+    ! @p b!
       NORTH
 : again
-    @ - !
-    jump again
+    @b call case
+    jump  read
+
+: case
+  pop + push ;
+
+: read
+    @b
+    @p a! !
+      EAST
+    . . . .
+    . . . .
+    . . . .
+    . . . .
+    . . . .
+    . . . .
+    @p a!
+      WEST
+    ! @
+    !b jump again
+
+---------------------------- 007 ----------------------------
+    @p !b
+      0x0000
+    @p @p
+      EAST
+      data
+    b! a!
+: ok
+    @ @b !
+    jump ok
+
+---------------------------- 009 ----------------------------
+WIRE(WEST, data)
