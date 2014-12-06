@@ -2,6 +2,7 @@ import sys
 import time
 import struct
 import serial
+import random
 from ga144 import GA144
 
 def trivial(load, send, recv):
@@ -89,18 +90,33 @@ if __name__ == '__main__':
     g.loadprogram('ram.ga')
     ser.setRTS(0)   # Reboot by dropping RTS
     ser.setRTS(1)
-    g.download(sys.argv[1], 460800, listen = False)
+    ser.write(g.async())
+    ser.flush()
 
-    for a in range(5):
+    def rd(a):
         send("OTHER", 0)
         send("OTHER", a)
-        print hex(recv("OTHER"))
-    print
-    if 1:
+        return recv("OTHER")
+    def wr(a, v):
         send("OTHER", 1)
-        send("OTHER", 3)
-        send("OTHER", 0x1013)
-    for a in range(5):
-        send("OTHER", 0)
         send("OTHER", a)
-        print hex(recv("OTHER"))
+        send("OTHER", v)
+    for a in range(5):
+        print hex(rd(a))
+    print
+    wr(3, 0x1234)
+    for a in range(5):
+        print hex(rd(a))
+
+    random.seed(0)
+    def r_w(aa, dd):
+        print aa
+        [wr(a, d) for a,d in zip(aa, dd)]
+        assert [rd(a) for a in aa] == dd
+    aa = [2 ** i for i in range(18)]
+    dd = [random.getrandbits(16) for _ in aa]
+    r_w(aa, dd)
+    while 1:
+        aa = random.sample(range(2**18), 10)
+        dd = [random.getrandbits(16) for _ in aa]
+        r_w(aa, dd)
