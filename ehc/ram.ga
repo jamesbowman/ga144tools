@@ -138,13 +138,6 @@ WIRE21(208, NORTH, SOUTH)
     call emit18
     drop ;
 
-\ ---------------------------- 008 ----------------------------
-\     @p a!
-\       NORTH
-\ : again
-\     @ - !
-\     jump again
-
 \ RAM http://www.cypress.com/?docID=45536
 
 ---------------------------- 008 ----------------------------
@@ -164,51 +157,42 @@ WIRE21(208, NORTH, SOUTH)
   pop + push ;
 
 : read
-    @b
-    @p a! !
-      EAST
-    . . . .
-    . . . .
-    . . . .
-    . . . .
-    . . . .
-    . . . .
-    @p a!
+    call addr
+    @p push
+      1           \ read delay
+    unext @p a!
       WEST
     @p ! @
       @ !p
     !b jump again
 
 : write
-    @b
-    @p a! !
-      EAST
-    @p a!
-      WEST
-    @p !
-      @p !b
-    @p !
-      0x1000
-    @p !
+    call addr
+    @p @p @p @p
       @p !
-    @b !
+      0x1000
+      @p !b
+      WEST
+    a! ! !
+    ! @b !
+
     @p a! @p @p
       io
       0b100000000000101110
       0b100000000000101010
-    !
-    . . . .
-    . . . .
-    . . . .
-    . . . .
-    . . . .
-    . . . .
-    !
+    ! @p push
+      1           \ write delay
+    unext !
     @p a!
       WEST
     @p !
       dup or !b
     jump again
+
+: addr
+    @b @p a!
+      EAST
+    ! ;
 
 ---------------------------- 007 ----------------------------
 : cold
