@@ -1,145 +1,3 @@
-\ RAM
-\
-\
-\ +---------+
-\ |         |
-\ |   708   |
-\ |         |
-\ +---------+
-\      |     
-\ +---------+
-\ |         |
-\ |   608   |
-\ |         |
-\ +---------+
-\      |     
-\ +---------+
-\ |         |
-\ |   508   |
-\ |         |
-\ +---------+
-\      |     
-\ +---------+
-\ |         |
-\ |   408   |
-\ |         |
-\ +---------+
-\      |     
-\ +---------+
-\ |         |
-\ |   308   |
-\ |         |
-\ +---------+
-\      |     
-\ +---------+
-\ |         |
-\ |   208   |
-\ |         |
-\ +---------+
-\      |     
-\ +---------+
-\ |         |
-\ |   108   |
-\ |         |
-\ +---------+
-\      |     
-\ +---------+
-\ |         |
-\ |   008   |
-\ |         |
-\ +---------+
-
-include(../src/ga144.hdr)
-
-dnl WIRE21(node, src, dst)  \ Carry a 2+1 packet from src to dst
-define(WIRE21, `
----------------------------- $1 ----------------------------
-
-    @p a! @p
-        $2
-        $3
-    b!
-: again
-    @ !b
-    @ !b
-    @b !
-    jump again
-
-')
-
-WIRE21(608, NORTH, SOUTH)
-WIRE21(508, NORTH, SOUTH)
-WIRE21(408, NORTH, SOUTH)
-WIRE21(308, NORTH, SOUTH)
-WIRE21(208, NORTH, SOUTH)
-
----------------------------- 108 ----------------------------
-
-    @p a! @p
-        NORTH
-        SOUTH
-    b!
-: again
-    @ @
-    \ -ve write, + read
-    -if doread
-    drop !b
-    !
-    jump again
-: doread
-    @b !
-    jump again
-
----------------------------- 708 ----------------------------
-: cold
-    @p b! @p
-    0x15d
-    SOUTH
-    a!
-
-: debug
-    call recv18
-    ! call recv18
-    !
-    @
-    call emit
-    jump debug
-
-: recv18
-    call 0xcb
-    drop ;
-
-: emit18 ( x -- x)
-    @p call emit8
-      0xa5
-    drop call emit8
-    call emit8
-: emit8
-    @p call bit
-    0
-    @p push
-    7
-: bloop
-    dup call bit
-    2/ next bloop
-
-    call bit1
-: bit1
-    @p
-    1
-: bit
-    @p and @p @p
-    1
-    3
-    865 \ 3460 for 115200
-    push or !b
-    unext ;
-: emit
-    call emit18
-    drop ;
-
-\ RAM http://www.cypress.com/?docID=45536
-
 ---------------------------- 008 ----------------------------
 \ GPIO 1 is CE
 \ GPIO 3 is WE
@@ -150,24 +8,31 @@ WIRE21(208, NORTH, SOUTH)
       NORTH
 : again
     @b call case
-    jump  read
-    jump  write
+    jump  cmd_read
+    jump  cmd_write
+    jump  cmd_block
 
 : case
   pop + push ;
 
-: read
-    call addr
-    @p push
-      1           \ read delay
-    unext @p a!
-      WEST
-    @p ! @
-      @ !p
+: cmd_read
+    @b call read
     !b jump again
 
-: write
-    call addr
+: read    ( addr -- v )
+    @p a! !
+      EAST
+    @p push
+      1
+    unext @p a!
+      WEST
+    @p ! @ ;
+      @ !p
+
+: cmd_write
+    @b @p a!
+      EAST
+    ! 
     @p @p @p @p
       @p !
       0x1000
@@ -189,10 +54,25 @@ WIRE21(208, NORTH, SOUTH)
       dup or !b
     jump again
 
-: addr
-    @b @p a!
-      EAST
-    ! ;
+: cmd_block
+    @p push @b
+      7
+    2* unext
+    dup call read
+    push
+: blockloop
+    @p . +
+      1
+    dup call read
+    2* 2* 2*
+    2* 2* 2*
+    2* 2* 2*
+    push @p . +
+      1
+    dup call read
+    pop or !b
+    next blockloop
+    jump again
 
 ---------------------------- 007 ----------------------------
 : cold

@@ -87,7 +87,7 @@ if __name__ == '__main__':
         print t.__name__
         t(load1, send, recv)
 
-    g.loadprogram('ram.ga')
+    g.loadprogram('testram.ga')
     ser.setRTS(0)   # Reboot by dropping RTS
     ser.setRTS(1)
     ser.write(g.async())
@@ -110,13 +110,36 @@ if __name__ == '__main__':
 
     random.seed(0)
     def r_w(aa, dd):
-        print aa
+        # print aa
         [wr(a, d) for a,d in zip(aa, dd)]
         assert [rd(a) for a in aa] == dd
     aa = [2 ** i for i in range(18)]
     dd = [random.getrandbits(16) for _ in aa]
     r_w(aa, dd)
-    while 1:
+    print "\n".join(g.node['008'].listing)
+    for i in xrange(10):
         aa = random.sample(range(2**18), 10)
         dd = [random.getrandbits(16) for _ in aa]
         r_w(aa, dd)
+
+    def loadblk(dst, prg):
+        prg_s = []
+        for p in prg:
+            prg_s.append(p >> 9)
+            prg_s.append(p & 511)
+        d = [len(prg) - 1] + prg_s
+        for i,d in enumerate(d):
+            wr(256 * dst + i, d)
+    prgs = [
+        (0, [0, 0x3ffff]),
+        (2, [random.getrandbits(18) for _ in range(127)]),
+        (1, [2**i for i in range(18)]),
+        (3, [random.getrandbits(18) for _ in range(127)]),
+    ]
+    for bn,prg in prgs:
+        loadblk(bn, prg)
+    for bn,prg in prgs:
+        send("OTHER", 2)
+        send("OTHER", bn)
+        assert prg == [recv("OTHER") for _ in prg]
+
