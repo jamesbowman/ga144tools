@@ -46,8 +46,6 @@ Instruction set notes:
 
   http://www.colorforth.com/arith.htm
 
-  http://www.intellasys.net/phpBB/viewforum.php?f=8
-
   http://www.colorforth.com/etherCode.htm
 
 Booting:
