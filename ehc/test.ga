@@ -1,0 +1,9 @@
+    @p a! @p @p
+        NORTH
+        1
+        0
+: again
+    over over . +     \ next fibonacci term
+    dup !             \ send to NORTH
+    jump again        \ forever
+

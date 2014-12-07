@@ -6,7 +6,10 @@ python cook.py b01 > b01.ga || exit
 python cook.py b02 > b02.ga || exit
 
 export PYTHONPATH=../src
-python unit.py $PORT zero.ga
+# python unit.py $PORT zero.ga
+python compile.py &&
+(cd ../src; python memload.py $PORT ../ehc/ram ) &&
+python ../src/asm.py $PORT ehc.ga ; exit
 exit
 
 # python asm.py $PORT helloworld.ga ; exit
