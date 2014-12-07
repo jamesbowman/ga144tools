@@ -2,7 +2,8 @@ ga144tools - Python toolchain for GA144
 =======================================
 
 This package is an alternate toolchain for GA144 CPUs. The tools are all Python-based,
-and the only additional requirement is PySerial.
+and the only additional requirements are 
+[PySerial](http://pyserial.sourceforge.net/) and the m4 utility.
 
 For example, [fibonacci.ga](src/fibonacci.ga) counts in the Fibonacci sequence in node 608, and transmits the integers back to the PC via the serial port on node 708.
 
