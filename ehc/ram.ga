@@ -16,7 +16,7 @@
   pop + push ;
 
 : cmd_read
-    @b call read
+    @b 2/ call read
     !b jump again
 
 : read    ( addr -- v )
@@ -30,9 +30,9 @@
       @ !p
 
 : cmd_write
-    @b @p a!
+    @b 2/ @p
       EAST
-    ! 
+    a! ! 
     @p @p @p @p
       @p !
       0x1000

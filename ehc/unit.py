@@ -110,15 +110,14 @@ if __name__ == '__main__':
 
     random.seed(0)
     def r_w(aa, dd):
-        # print aa
         [wr(a, d) for a,d in zip(aa, dd)]
         assert [rd(a) for a in aa] == dd
-    aa = [2 ** i for i in range(18)]
+    aa = [2 ** i for i in range(1, 18)]
     dd = [random.getrandbits(16) for _ in aa]
     r_w(aa, dd)
     print "\n".join(g.node['008'].listing)
     for i in xrange(10):
-        aa = random.sample(range(2**18), 10)
+        aa = random.sample(range(0, 2**18, 2), 10)
         dd = [random.getrandbits(16) for _ in aa]
         r_w(aa, dd)
 
@@ -129,9 +128,9 @@ if __name__ == '__main__':
             prg_s.append(p & 511)
         d = [len(prg) - 1] + prg_s
         for i,d in enumerate(d):
-            wr(256 * dst + i, d)
+            wr(2 * (256 * dst + i), d)
     prgs = [
-        (0, [0, 0x3ffff]),
+        (0, [0xaa, 0x3ffff]),
         (2, [random.getrandbits(18) for _ in range(127)]),
         (1, [2**i for i in range(18)]),
         (3, [random.getrandbits(18) for _ in range(127)]),
@@ -141,5 +140,5 @@ if __name__ == '__main__':
     for bn,prg in prgs:
         send("OTHER", 2)
         send("OTHER", bn)
-        assert prg == [recv("OTHER") for _ in prg]
-
+        a = [recv("OTHER") for _ in prg]
+        assert prg == a
