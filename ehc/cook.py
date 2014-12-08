@@ -2,6 +2,11 @@ import re
 import array
 from ga144 import GA144
 
+# RAM controller command codes
+DO_READ = 0     # then addr
+DO_WRITE = 1    # then addr, val
+DO_BLOCK = 2    # then blocknum
+
 class CodeBuf:
     def __init__(self):
         self.cc = []            # all generated code
@@ -84,7 +89,8 @@ def convert(filename):
     cb.op('b!')
     cb.label('start')
     for l in open(filename):
-        ii = re.findall(r"[$\w']+", l)
+        ii = re.findall(r"[$\-\+()\w']+", l)
+        print ii
         if ii[0] == 'clr':
             cb.ops('dup or')
             cb.ra(ii[1])
@@ -92,8 +98,15 @@ def convert(filename):
         elif ii[0] == 'mov':
             (src, dst) = ii[1:]
             cb.src(src)
-            cb.ra(dst)
-            cb.op('!')
+            if dst == '-(sp)':
+                cb.lit(DO_WRITE)
+                cb.op('!b')
+                cb.lit(-2)
+                cb.ra('r6')
+                cb.ops('@ . + dup ! !b !b')
+            else:
+                cb.ra(dst)
+                cb.op('!')
         elif ii[0] == 'add':
             (src, dst) = ii[1:]
             cb.src(src)
@@ -105,7 +118,7 @@ def convert(filename):
             cb.ops('@ . + !')
         elif ii[0] == 'bne':
             (a, b, yes, no) = ii[1:]
-            cb.lit(2)
+            cb.lit(DO_BLOCK)
             cb.op('!b')
             cb.src(a)
             cb.src(b)
@@ -123,7 +136,7 @@ def convert(filename):
             cb.lit('NORTH')
             cb.ops('a! !')
         elif ii[0] == 'jmp':
-            cb.lit(2)
+            cb.lit(DO_BLOCK)
             cb.op('!b')
             cb.lit(ii[1])
             cb.op('!b')
@@ -136,7 +149,7 @@ if __name__ == '__main__':
     def loadblk(dst, prg):
         prg_s = []
         for p in prg:
-            prg_s.append(p >> 9)
+            prg_s.append((p >> 9) & 511)
             prg_s.append(p & 511)
         d = [len(prg) - 1] + prg_s
         for i,d in enumerate(d):
@@ -149,8 +162,8 @@ if __name__ == '__main__':
         ga = "b%02d.ga" % i
         open(ga, "w").write(convert("b%02d" % i))
         n.load(open("b%02d.ga" % i).read())
-        # print n.load_pgm
-        # print n.prefix
+        # Now n.prefix is the prefix, n.load_pgm is the RAM contents
+        # Construct a bootstream
         r = [n.assemble("dup or dup".split()),
              n.assemble("push a! @p".split()),
              len(n.load_pgm) - 1,

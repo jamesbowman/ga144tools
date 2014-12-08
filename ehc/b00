@@ -1,4 +1,5 @@
         emit $0x33333
+	mov r2, -(sp)
 	clr r0
 	mov $01, r1
 	mov $01, r2
