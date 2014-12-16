@@ -1,3 +1,4 @@
+import sys
 import re
 import array
 from ga144 import GA144
@@ -66,6 +67,18 @@ class CodeBuf:
     def src(self, s):
         if s[0] == '$':
             self.lit(int(s[1:], 0))
+        elif s == '(sp)+':
+            self.lit(DO_READ)
+            self.op('!b')
+            self.lit(2)
+            self.ra('r6')
+            self.ops('@ dup !b . + ! @b')
+        elif re.match('06\(sp\)', s):
+            self.lit(DO_READ)
+            self.op('!b')
+            self.lit(6)
+            self.ra('r6')
+            self.ops('@ . + !b @b')
         else:
             self.ra(s)
             self.op('@')
@@ -83,69 +96,180 @@ class CodeBuf:
         self.flush()
         self.jump('SOUTH')
 
-def convert(filename):
-    cb = CodeBuf()
-    cb.lit('SOUTH')
-    cb.op('b!')
-    cb.label('start')
-    for l in open(filename):
-        ii = re.findall(r"[$\-\+()\w']+", l)
-        print ii
-        if ii[0] == 'clr':
-            cb.ops('dup or')
-            cb.ra(ii[1])
-            cb.op('!')
-        elif ii[0] == 'mov':
-            (src, dst) = ii[1:]
-            cb.src(src)
-            if dst == '-(sp)':
-                cb.lit(DO_WRITE)
-                cb.op('!b')
-                cb.lit(-2)
-                cb.ra('r6')
-                cb.ops('@ . + dup ! !b !b')
-            else:
-                cb.ra(dst)
+
+class BB:
+    def __init__(self, code, succ, source):
+        self.code = code
+        self.succ = succ
+        self.source = source
+
+    def __repr__(self):
+        return "BLOCK:\n" + "".join(["    " + x + "\n" for x in self.code]) + repr(self.succ) + "\n"
+
+    def add(self, c):
+        self.code.append(c)
+
+    def convert(self, blocknums):
+        cb = CodeBuf()
+        cb.lit('SOUTH')
+        cb.op('b!')
+        cb.label('start')
+        for l in self.code:
+            ii = re.findall(r"[$\-\+()\w']+", l)
+            print ii
+            if ii[0] == 'clr':
+                cb.ops('dup or')
+                cb.ra(ii[1])
                 cb.op('!')
-        elif ii[0] == 'add':
-            (src, dst) = ii[1:]
-            cb.src(src)
-            cb.ra(dst)
-            cb.ops('@ . + !')
-        elif ii[0] == 'inc':
-            cb.lit(1)
-            cb.ra(ii[1])
-            cb.ops('@ . + !')
-        elif ii[0] == 'bne':
-            (a, b, yes, no) = ii[1:]
+            elif ii[0] == 'mov':
+                (src, dst) = ii[1:]
+                if dst == '-(sp)':
+                    cb.src(src)
+                    cb.lit(DO_WRITE)
+                    cb.op('!b')
+                    cb.lit(-2)
+                    cb.ra('r6')
+                    cb.ops('@ . + dup ! !b !b')
+                else:
+                    cb.src(src)
+                    cb.ra(dst)
+                    cb.op('!')
+            elif ii[0] == 'add':
+                (src, dst) = ii[1:]
+                cb.src(src)
+                cb.ra(dst)
+                cb.ops('@ . + !')
+            elif ii[0] == 'inc':
+                cb.lit(1)
+                cb.ra(ii[1])
+                cb.ops('@ . + !')
+            elif ii[0] == 'dec':
+                cb.lit(-1)
+                cb.ra(ii[1])
+                cb.ops('@ . + !')
+            elif ii[0] == 'emit':
+                cb.src(ii[1])
+                cb.lit('NORTH')
+                cb.ops('a! !')
+            else:
+                assert 0, "Unrecognised %r" % ii
+
+        if self.succ[0] == 'br':
+            cb.lit(DO_BLOCK)
+            cb.op('!b')
+            cb.lit(blocknums[self.succ[1]])
+        elif self.succ[0] == 'ifeq':
+            (_, a, b, yes, no) = self.succ
             cb.lit(DO_BLOCK)
             cb.op('!b')
             cb.src(a)
             cb.src(b)
             cb.op('or')
             cb.jz('L1')
-            cb.lit(yes)
+            cb.lit(blocknums[yes])
             cb.jump('L2')
             cb.label('L1')
-            cb.lit(no)
+            cb.lit(blocknums[no])
             cb.label('L2')
-            cb.op('!b')
-            cb.finish()
-        elif ii[0] == 'emit':
-            cb.src(ii[1])
-            cb.lit('NORTH')
-            cb.ops('a! !')
-        elif ii[0] == 'jmp':
+        elif self.succ[0] == 'deceq':
+            (_, reg, yes, no) = self.succ
             cb.lit(DO_BLOCK)
             cb.op('!b')
-            cb.lit(ii[1])
-            cb.op('!b')
-            cb.finish()
-    cb.flush()
-    return "".join(s + "\n" for s in cb.cc)
+            cb.lit(-1)
+            cb.ra(reg)
+            cb.ops('@ . + dup !')
+            cb.jz('L1')
+            cb.lit(blocknums[yes])
+            cb.jump('L2')
+            cb.label('L1')
+            cb.lit(blocknums[no])
+            cb.label('L2')
+
+        elif self.succ[0] == 'rts':
+            cb.src('r0')
+            cb.lit('NORTH')
+            cb.ops('a! !')
+        else:
+            assert 0, 'Bad succ %r' % (self.succ,)
+        cb.op('!b')
+        cb.finish()
+
+        cb.flush()
+        return "".join(s + "\n" for s in cb.cc)
+
+def psplit(f):
+    """ read the assembler source, split it into basic blocks on labels """
+    r = []
+    b = None
+    for line in f:
+        line = line.strip()
+        if line.startswith('.'):
+            continue
+        elif re.match("^[A-Za-z_0-9]*:", line):
+            if b:
+                r.append(b)
+            b = [line]
+        else:
+            if b:
+                b.append(line)
+    if b:
+        r.append(b)
+    return r
+
+def brbreak(b):
+    """ if block b has a branch, split it """
+    for i,l in enumerate(b):
+        if l.split()[0] == 'bne':
+            p0 = b[:i+1]
+            p1 = b[i+1:]
+            return [p0, ['X:'] + p1]
+    return [b]
+
+def uncolon(b):
+    return [b[0][:-1]] + b[1:]
+
+def blocks(pgm):
+    r = {}
+    labels = [b[0] for b in pgm]
+    for (label,b,succ) in zip(labels, pgm, labels[1:] + [None]):
+        body = b[1:]
+        last = body[-1].split()
+        if last[0] == 'br':
+            s = ('br', last[1], )
+            bb = body[:-1]
+        elif last[0] == 'bne':
+            (cmp, args) = body[-2].split()
+            if cmp == 'cmp':
+                a0,a1 = args.split(",")
+                s = ('ifeq', a0, a1, succ, last[1])
+                bb = body[:-2]
+            elif cmp == 'dec':
+                s = ('deceq', args, last[1], succ)
+                bb = body[:-2]
+            else:
+                assert 0, "Unknown condition %r %r" % (body[-2], body[-1])
+        elif last[0] == 'rts':
+            s = ('rts',)
+            bb = body[:-1]
+        else:
+            s = ('br', succ)
+            bb = body
+        r[label] = BB(bb, s, body)
+    return r
 
 if __name__ == '__main__':
-    ram = array.array('H', 1024 * [0])
+    pgm = psplit(open("fib.s"))
+    pgm = sum([brbreak(b) for b in pgm], [])
+    pgm = [uncolon(b) for b in pgm]
+    pgm = blocks(pgm)
+    labels = set(pgm.keys()) - set(['_Main'])
+    print labels
+    blocknums = dict([(b,i) for (i,b) in enumerate(['_Main'] + sorted(labels))])
+    print blocknums
+    print pgm
+    print '---'
+
+    ram = array.array('H', 8192 * [0])
     def loadblk(dst, prg):
         prg_s = []
         for p in prg:
@@ -158,17 +282,29 @@ if __name__ == '__main__':
     g = GA144()
     n = g.node['108']
 
-    for i in range(3):
-        ga = "b%02d.ga" % i
-        open(ga, "w").write(convert("b%02d" % i))
-        n.load(open("b%02d.ga" % i).read())
+    for bname,b in pgm.items():
+        bn = blocknums[bname]
+        gg = open("g%d" % bn, "w")
+        comment = ["BLOCK %d: converted from %s" % (bn, bname)]
+        comment += b.source
+        for c in comment:
+            gg.write(r"\ " + c + "\n")
+        gg.write('\n')
+        gg.write(b.convert(blocknums))
+        gg.close()
+        print
+
+        ga = "g%d" % bn
+        n.load(open(ga).read())
         # Now n.prefix is the prefix, n.load_pgm is the RAM contents
+        assert len(n.load_pgm) <= 56
         # Construct a bootstream
+        print >> open("b%02d.lst" % bn, "w"), "\n".join(n.listing)
         r = [n.assemble("dup or dup".split()),
              n.assemble("push a! @p".split()),
              len(n.load_pgm) - 1,
              n.assemble(["push"]),
              n.assemble("@p !+ unext".split())] + n.load_pgm + n.prefix
-        print len(r), len(n.load_pgm)
-        loadblk(i, r)
+        print ga, 'RAM', len(n.load_pgm), 'bootstream', len(r)
+        loadblk(bn, r)
     open("ram", "w").write(ram.tostring())
