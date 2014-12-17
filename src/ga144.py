@@ -401,7 +401,9 @@ class GA144:
     def download(self, port, speed, listen = True):
         import serial
         ser = serial.Serial(port, speed)
-        ser.dsrdtr = True
+        ser.setRTS(0)   # Reboot by dropping RTS
+        ser.setRTS(1)
+        # ser.dsrdtr = True
         ser.write(self.async())
         ser.flush()
         self.announce("DOWNLOAD COMPLETE")
@@ -417,6 +419,7 @@ class GA144:
                     printable = "'%c'" % v
                 else:
                     printable = ""
+                print "[%.3f]" % (time.time() - t0),
                 print "0x%05x  %d   %s" % (v & 0x3ffff, v & 0x3ffff, printable)
                 if (v & 0xffff) == 0x1111:
                     t0 = time.time()
@@ -427,3 +430,4 @@ class GA144:
                     # ser.flush()
                 if v == 0x00947:
                     return
+                t0 = time.time()
