@@ -159,7 +159,7 @@ class BB:
             cb.op('!b')
             cb.lit(blocknums[self.succ[1]])
         elif self.succ[0] == 'ifeq':
-            (_, a, b, yes, no) = self.succ
+            (_, (a, b), yes, no) = self.succ
             cb.lit(DO_BLOCK)
             cb.op('!b')
             cb.src(a)
@@ -172,7 +172,7 @@ class BB:
             cb.lit(blocknums[no])
             cb.label('L2')
         elif self.succ[0] == 'deceq':
-            (_, reg, yes, no) = self.succ
+            (_, (reg,), yes, no) = self.succ
             cb.lit(DO_BLOCK)
             cb.op('!b')
             cb.lit(-1)
@@ -184,11 +184,25 @@ class BB:
             cb.label('L1')
             cb.lit(blocknums[no])
             cb.label('L2')
-
+        elif self.succ[0] == 'tst':
+            (_, (reg,), yes, no) = self.succ
+            cb.lit(DO_BLOCK)
+            cb.op('!b')
+            cb.ra(reg)
+            cb.ops('@')
+            cb.jz('L1')
+            cb.lit(blocknums[yes])
+            cb.jump('L2')
+            cb.label('L1')
+            cb.lit(blocknums[no])
+            cb.label('L2')
         elif self.succ[0] == 'rts':
+            cb.lit(DO_BLOCK)
+            cb.op('!b')
             cb.src('r0')
             cb.lit('NORTH')
             cb.ops('a! !')
+            cb.lit(0)
         else:
             assert 0, 'Bad succ %r' % (self.succ,)
         cb.op('!b')
@@ -216,13 +230,19 @@ def psplit(f):
         r.append(b)
     return r
 
+scratch = 0
 def brbreak(b):
     """ if block b has a branch, split it """
     for i,l in enumerate(b):
-        if l.split()[0] == 'bne':
+        if l.split()[0] in ('bne', 'beq'):
             p0 = b[:i+1]
             p1 = b[i+1:]
-            return [p0, ['X:'] + p1]
+            if p1:
+                global scratch
+                scratch += 1
+                return [p0, ['X%d:' % scratch] + p1]
+            else:
+                return [p0]
     return [b]
 
 def uncolon(b):
@@ -232,6 +252,7 @@ def blocks(pgm):
     r = {}
     labels = [b[0] for b in pgm]
     for (label,b,succ) in zip(labels, pgm, labels[1:] + [None]):
+        print 'x', label, b, succ
         body = b[1:]
         last = body[-1].split()
         if last[0] == 'br':
@@ -239,13 +260,26 @@ def blocks(pgm):
             bb = body[:-1]
         elif last[0] == 'bne':
             (cmp, args) = body[-2].split()
+            aa = args.split(",")
+            bb = body[:-2]
             if cmp == 'cmp':
-                a0,a1 = args.split(",")
-                s = ('ifeq', a0, a1, succ, last[1])
-                bb = body[:-2]
+                s = ('ifeq', aa, succ, last[1])
             elif cmp == 'dec':
-                s = ('deceq', args, last[1], succ)
-                bb = body[:-2]
+                s = ('deceq', aa, last[1], succ)
+            elif cmp == 'tst':
+                s = ('tst', aa, last[1], succ)
+            else:
+                assert 0, "Unknown condition %r %r" % (body[-2], body[-1])
+        elif last[0] == 'beq':
+            (cmp, args) = body[-2].split()
+            aa = args.split(",")
+            bb = body[:-2]
+            if cmp == 'cmp':
+                s = ('ifeq', aa, last[1], succ)
+            elif cmp == 'dec':
+                s = ('deceq', aa, succ, last[1])
+            elif cmp == 'tst':
+                s = ('tst', aa, succ, last[1])
             else:
                 assert 0, "Unknown condition %r %r" % (body[-2], body[-1])
         elif last[0] == 'rts':

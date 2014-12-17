@@ -1,5 +1,5 @@
 PORT=/dev/tty.usbserial-000013FA
-PORT=/dev/ttyUSB1
+PORT=/dev/ttyUSB0
 
 export PYTHONPATH=../src
 # python unit.py $PORT || exit
