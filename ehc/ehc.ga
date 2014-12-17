@@ -37,6 +37,8 @@ WIRE(SOUTH, NORTH)
       2       \ request block
       SOUTH
     a! ! !
+    @p b!
+      SOUTH
     jump SOUTH
 
 include(ram.ga)

@@ -111,8 +111,6 @@ class BB:
 
     def convert(self, blocknums):
         cb = CodeBuf()
-        cb.lit('SOUTH')
-        cb.op('b!')
         cb.label('start')
         for l in self.code:
             ii = re.findall(r"[$\-\+()\w']+", l)
