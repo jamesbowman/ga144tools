@@ -7,13 +7,28 @@
     ! @p b!
       NORTH
 : again
-    @b call case
+    @b -if rw
+: cmd_block
+    @p push -
+      7
+    2* unext
+    dup call read
+    push
+: blockloop
+    @p . +
+      1
+    dup call read
+    2* 2*
+    push @p . +
+      1
+    dup call read
+    pop or !b
+    next blockloop
+    jump again
+: rw
+    call case
     jump  cmd_read
     jump  cmd_write
-    jump  cmd_block
-
-: case
-  pop + push ;
 
 : cmd_read
     @b 2/ call read
@@ -54,25 +69,8 @@
       dup or !b
     jump again
 
-: cmd_block
-    @p push @b
-      7
-    2* unext
-    dup call read
-    push
-: blockloop
-    @p . +
-      1
-    dup call read
-    2* 2* 2*
-    2* 2* 2*
-    2* 2* 2*
-    push @p . +
-      1
-    dup call read
-    pop or !b
-    next blockloop
-    jump again
+: case
+  pop + push ;
 
 ---------------------------- 007 ----------------------------
 : cold

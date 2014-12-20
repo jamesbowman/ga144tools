@@ -1,18 +1,19 @@
 import sys
 import re
+import copy
 import array
 from ga144 import GA144
 
-# RAM controller command codes
+# RAM controller command codes. Negative value means LOAD_BLOCK
 DO_READ = 0     # then addr
 DO_WRITE = 1    # then addr, val
-DO_BLOCK = 2    # then blocknum
 
 class CodeBuf:
     def __init__(self):
         self.cc = []            # all generated code
         self.insn = []          # current insn
         self.afters = []        # words after the current insn
+        self.a = None
 
     def flush(self):
         if self.insn:
@@ -61,12 +62,14 @@ class CodeBuf:
 
     def ra(self, reg):
         assert reg[0] == 'r'
-        self.lit('07' + reg[1])
-        self.op('a!')
+        if self.a != reg:
+            self.a = reg
+            self.lit('07' + reg[1])
+            self.op('a!')
 
     def src(self, s):
         if s[0] == '$':
-            self.lit(int(s[1:], 0))
+            self.lit(0xffff & int(s[1:], 0))
         elif s == '(sp)+':
             self.lit(DO_READ)
             self.op('!b')
@@ -109,7 +112,7 @@ class BB:
     def add(self, c):
         self.code.append(c)
 
-    def convert(self, blocknums):
+    def convert(self, this, blocknums):
         cb = CodeBuf()
         cb.label('start')
         for l in self.code:
@@ -152,55 +155,45 @@ class BB:
             else:
                 assert 0, "Unrecognised %r" % ii
 
+        def binchoice(jumpop, yes, no):
+            if 1 and yes == this:
+                jumpop('L1')
+                cb.jump('start')
+                cb.label('L1')
+                cb.lit(~blocknums[no])
+                cb.label('L2')
+            else:
+                jumpop('L1')
+                cb.lit(~blocknums[yes])
+                cb.jump('L2')
+                cb.label('L1')
+                cb.lit(~blocknums[no])
+                cb.label('L2')
+
         if self.succ[0] == 'br':
-            cb.lit(DO_BLOCK)
-            cb.op('!b')
-            cb.lit(blocknums[self.succ[1]])
+            cb.lit(~blocknums[self.succ[1]])
         elif self.succ[0] == 'ifeq':
             (_, (a, b), yes, no) = self.succ
-            cb.lit(DO_BLOCK)
-            cb.op('!b')
             cb.src(a)
             cb.src(b)
             cb.op('or')
-            cb.jz('L1')
-            cb.lit(blocknums[yes])
-            cb.jump('L2')
-            cb.label('L1')
-            cb.lit(blocknums[no])
-            cb.label('L2')
+            binchoice(cb.jz, yes, no)
         elif self.succ[0] == 'deceq':
             (_, (reg,), yes, no) = self.succ
-            cb.lit(DO_BLOCK)
-            cb.op('!b')
             cb.lit(-1)
             cb.ra(reg)
             cb.ops('@ . + dup !')
-            cb.jz('L1')
-            cb.lit(blocknums[yes])
-            cb.jump('L2')
-            cb.label('L1')
-            cb.lit(blocknums[no])
-            cb.label('L2')
+            binchoice(cb.jz, yes, no)
         elif self.succ[0] == 'tst':
             (_, (reg,), yes, no) = self.succ
-            cb.lit(DO_BLOCK)
-            cb.op('!b')
             cb.ra(reg)
             cb.ops('@')
-            cb.jz('L1')
-            cb.lit(blocknums[yes])
-            cb.jump('L2')
-            cb.label('L1')
-            cb.lit(blocknums[no])
-            cb.label('L2')
+            binchoice(cb.jz, yes, no)
         elif self.succ[0] == 'rts':
-            cb.lit(DO_BLOCK)
-            cb.op('!b')
             cb.src('r0')
             cb.lit('NORTH')
             cb.ops('a! !')
-            cb.lit(0)
+            cb.lit(~0)
         else:
             assert 0, 'Bad succ %r' % (self.succ,)
         cb.op('!b')
@@ -301,12 +294,20 @@ if __name__ == '__main__':
     print pgm
     print '---'
 
+    for l,n in pgm.items():
+        if n.succ[0] == 'br':
+            s = pgm[n.succ[1]]
+            n.source = copy.copy(n.source + s.source)
+            n.code += s.code
+            n.succ = s.succ
+    # sys.exit(1)
+
     ram = array.array('H', 8192 * [0])
     def loadblk(dst, prg):
         prg_s = []
         for p in prg:
-            prg_s.append((p >> 9) & 511)
-            prg_s.append(p & 511)
+            prg_s.append((p >> 2) & 65535)
+            prg_s.append(p & 3)
         d = [len(prg) - 1] + prg_s
         for i,d in enumerate(d):
             ram[256 * dst + i] = d
@@ -322,7 +323,7 @@ if __name__ == '__main__':
         for c in comment:
             gg.write(r"\ " + c + "\n")
         gg.write('\n')
-        gg.write(b.convert(blocknums))
+        gg.write(b.convert(bname, blocknums))
         gg.close()
         print
 
@@ -336,7 +337,7 @@ if __name__ == '__main__':
              n.assemble("push a! @p".split()),
              len(n.load_pgm) - 1,
              n.assemble(["push"]),
-             n.assemble("@p !+ unext".split())] + n.load_pgm + n.prefix
+             n.assemble("@p !+ unext ;".split())] + n.load_pgm + n.prefix[:-1] # trim off "jump 0"
         print ga, 'RAM', len(n.load_pgm), 'bootstream', len(r)
         loadblk(bn, r)
     open("ram", "w").write(ram.tostring())

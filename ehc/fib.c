@@ -14,5 +14,5 @@ int fib(unsigned int n)
 
 int Main(void)
 {
-  return fib(32767);
+  return fib(65535);
 }

@@ -32,11 +32,10 @@ WIRE(SOUTH, NORTH)
       0xff00    \ r6
 
 : cold
-    @p @p @p
-      0       \ zero
-      2       \ request block
+    @p @p
+      ~0      \ zero
       SOUTH
-    a! ! !
+    a! !
     @p b!
       SOUTH
     jump SOUTH
