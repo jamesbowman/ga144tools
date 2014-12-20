@@ -3,6 +3,8 @@ import re
 import copy
 import array
 from ga144 import GA144
+from heapq import heappush, heappop, heapify
+from collections import defaultdict
 
 # RAM controller command codes. Negative value means LOAD_BLOCK
 DO_READ = 0     # then addr
@@ -282,6 +284,20 @@ def blocks(pgm):
         r[label] = BB(bb, s, body)
     return r
 
+def encode(symb2freq):
+    """Huffman encode the given dict mapping symbols to weights"""
+    heap = [[wt, [sym, ""]] for sym, wt in symb2freq.items()]
+    heapify(heap)
+    while len(heap) > 1:
+        lo = heappop(heap)
+        hi = heappop(heap)
+        for pair in lo[1:]:
+            pair[1] = '0' + pair[1]
+        for pair in hi[1:]:
+            pair[1] = '1' + pair[1]
+        heappush(heap, [lo[0] + hi[0]] + lo[1:] + hi[1:])
+    return sorted(heappop(heap)[1:], key=lambda p: (len(p[-1]), p))
+
 if __name__ == '__main__':
     pgm = psplit(open("fib.s"))
     pgm = sum([brbreak(b) for b in pgm], [])
@@ -315,6 +331,7 @@ if __name__ == '__main__':
     g = GA144()
     n = g.node['108']
 
+    symb2freq = defaultdict(int)
     for bname,b in pgm.items():
         bn = blocknums[bname]
         gg = open("g%d" % bn, "w")
@@ -328,11 +345,12 @@ if __name__ == '__main__':
         print
 
         ga = "g%d" % bn
+        n.listing = []
         n.load(open(ga).read())
         # Now n.prefix is the prefix, n.load_pgm is the RAM contents
         assert len(n.load_pgm) <= 56
         # Construct a bootstream
-        print >> open("b%02d.lst" % bn, "w"), "\n".join(n.listing)
+        print >> open("%s.lst" % ga, "w"), "\n".join(n.listing)
         r = [n.assemble("dup or dup".split()),
              n.assemble("push a! @p".split()),
              len(n.load_pgm) - 1,
@@ -340,4 +358,17 @@ if __name__ == '__main__':
              n.assemble("@p !+ unext ;".split())] + n.load_pgm + n.prefix[:-1] # trim off "jump 0"
         print ga, 'RAM', len(n.load_pgm), 'bootstream', len(r)
         loadblk(bn, r)
+        for ch in r:
+            if ch in range(070, 100): ch -= 070
+            symb2freq[ch] += 1
     open("ram", "w").write(ram.tostring())
+    huff = encode(symb2freq)
+    print "Symbol\tWeight\tHuffman Code"
+    b = 0
+    s = 0
+    for p in huff:
+        print "%s\t%s\t%s" % (p[0], symb2freq[p[0]], p[1])
+        s += symb2freq[p[0]]
+        b += symb2freq[p[0]] * len(p[1])
+    print s, "symbols."
+    print "compressed from", 18 * s, "to", b, "bits", b / 16., "words"
