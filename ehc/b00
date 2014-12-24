@@ -1,9 +1,0 @@
-        emit $0x33333
-	mov r2, -(sp)
-	clr r0
-	mov $01, r1
-	mov $01, r2
-	mov r1, r3
-	add r2, r3
-	inc r0
-	bne r0,$0145,1,2

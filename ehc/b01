@@ -1,6 +1,0 @@
-	mov r1, r2
-	mov r3, r1
-	mov r1, r3
-	add r2, r3
-	inc r0
-	bne r0,$101,1,2
