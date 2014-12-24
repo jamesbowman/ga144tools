@@ -34,18 +34,21 @@ L_4:
 _Main:
 	mov r2, -(sp)
 	mov r3, -(sp)
-	mov $-01, r1
+	mov $-01, r0
 	clr r2
-	mov $01, r0
+	mov $01, r1
 	br L_12
 L_13:
-	mov r0, r2
-	mov r3, r0
+	mov r1, r2
+	mov r3, r1
 L_12:
-	mov r0, r3
+	mov r1, r3
 	add r2, r3
-	dec r1
+	dec r0
 	bne L_13
+;# 17 "fib.c" 1
+	mfpi r1
+;# 0 "" 2
 	mov (sp)+, r3
 	mov (sp)+, r2
 	rts pc

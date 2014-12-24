@@ -150,7 +150,7 @@ class BB:
                 cb.lit(-1)
                 cb.ra(ii[1])
                 cb.ops('@ . + !')
-            elif ii[0] == 'emit':
+            elif ii[0] == 'mfpi':
                 cb.src(ii[1])
                 cb.lit('NORTH')
                 cb.ops('a! !')
@@ -192,9 +192,6 @@ class BB:
             cb.ops('@')
             binchoice(cb.jz, yes, no)
         elif self.succ[0] == 'rts':
-            cb.src('r0')
-            cb.lit('NORTH')
-            cb.ops('a! !')
             cb.lit(~0)
         else:
             assert 0, 'Bad succ %r' % (self.succ,)
@@ -210,7 +207,7 @@ def psplit(f):
     b = None
     for line in f:
         line = line.strip()
-        if line.startswith('.'):
+        if line.startswith('.') or line.startswith(';'):
             continue
         elif re.match("^[A-Za-z_0-9]*:", line):
             if b:
@@ -359,16 +356,23 @@ if __name__ == '__main__':
         print ga, 'RAM', len(n.load_pgm), 'bootstream', len(r)
         loadblk(bn, r)
         for ch in r:
-            if ch in range(070, 100): ch -= 070
+            # print '%05x %03x' % (0x3ffff & ch, 0xff & ch)
+            # if ch in range(070, 100): ch -= 070
             symb2freq[ch] += 1
     open("ram", "w").write(ram.tostring())
-    huff = encode(symb2freq)
-    print "Symbol\tWeight\tHuffman Code"
-    b = 0
-    s = 0
-    for p in huff:
-        print "%s\t%s\t%s" % (p[0], symb2freq[p[0]], p[1])
-        s += symb2freq[p[0]]
-        b += symb2freq[p[0]] * len(p[1])
-    print s, "symbols."
-    print "compressed from", 18 * s, "to", b, "bits", b / 16., "words"
+    if 0:
+        huff = encode(symb2freq)
+        print "Symbol\tWeight\tHuffman Code"
+        b = 0
+        s = 0
+        for symbol,code in huff:
+            print "%s\t%s\t%s" % (symbol, symb2freq[symbol], code)
+            s += symb2freq[symbol]
+            b += symb2freq[symbol] * len(code)
+        print s, "symbols."
+        print "compressed from", 18 * s, "to", b, "bits", b / 16., "words"
+        top63 = [s for _,s in sorted([(-f,s) for (s,f) in symb2freq.items()])][:63]
+        n = sum(symb2freq.values())
+        ntop63 = sum(symb2freq[s] for s in top63)
+        nbits = ntop63 * 6 + (n - ntop63) * 24
+        print 'Simple scheme,', nbits, nbits / 16

@@ -1,4 +1,4 @@
-extern void out(int);
+#define OUTPUT(X) __asm__("mfpi %0" : : "" (X))
 
 int fib(unsigned int n)
 {
@@ -12,7 +12,7 @@ int fib(unsigned int n)
   return a;
 }
 
-int Main(void)
+void Main(void)
 {
-  return fib(65535);
+  OUTPUT(fib(65535));
 }
