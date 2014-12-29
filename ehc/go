@@ -4,7 +4,7 @@ PORT=/dev/ttyUSB0
 export PYTHONPATH=../src
 # python unit.py $PORT || exit
 
-/data/pdp11/local/bin/pdp11-aout-gcc -S -O9 -fomit-frame-pointer fib.c &&
+/data/pdp11/local/bin/pdp11-aout-gcc -S -Os -fomit-frame-pointer fib.c &&
 python cook.py &&
 (cd ../src; python memload.py $PORT ../ehc/ram ) &&
 python ../src/asm.py $PORT ehc.ga ; exit

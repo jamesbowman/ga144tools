@@ -5,50 +5,29 @@
 _fib:
 	mov r2, -(sp)
 	mov r3, -(sp)
-	mov 06(sp), r0
-	mov r0, r1
-	dec r1
-	tst r0
-	beq L_4
-	mov $01, r0
-	clr r2
-	br L_3
-L_9:
-	mov r0, r2
-	mov r3, r0
-L_3:
-	mov r0, r3
-	add r2, r3
+	mov 06(sp), r1
+	mov $01, r2
+	clr r0
+L_2:
 	dec r1
 	cmp r1,$-01
-	bne L_9
-L_2:
+	beq L_5
+	mov r2, r3
+	add r0, r3
+	mov r2, r0
+	mov r3, r2
+	br L_2
+L_5:
 	mov (sp)+, r3
 	mov (sp)+, r2
 	rts pc
-L_4:
-	clr r0
-	br L_2
 	.even
 	.globl _Main
 _Main:
-	mov r2, -(sp)
-	mov r3, -(sp)
-	mov $-01, r0
-	clr r2
-	mov $01, r1
-	br L_12
-L_13:
-	mov r1, r2
-	mov r3, r1
-L_12:
-	mov r1, r3
-	add r2, r3
-	dec r0
-	bne L_13
+	mov $-01, -(sp)
+	jsr pc, _fib
+	add $02, sp
 ;# 17 "fib.c" 1
-	mfpi r1
+	mfpi r0
 ;# 0 "" 2
-	mov (sp)+, r3
-	mov (sp)+, r2
 	rts pc

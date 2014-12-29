@@ -27,7 +27,7 @@ class CodeBuf:
     def op(self, o):
         assert o in "; ex jump call unext next if -if @p @+ @b @ !p !+ !b ! +* 2* 2/ - + and or drop dup pop over a . push b! a!".split()
 
-        slot3 = "; unext @p !p +* + dup nop".split()
+        slot3 = "; unext @p !p +* + dup .".split()
         if len(self.insn) == 3:
             if o in slot3:
                 self.insn.append(o)
@@ -63,7 +63,9 @@ class CodeBuf:
         self.op("@p")
 
     def ra(self, reg):
-        assert reg[0] == 'r'
+        if reg == 'sp':
+            return self.ra('r6')
+        assert reg[0] == 'r', "Expected register, got '%s'" % reg
         if self.a != reg:
             self.a = reg
             self.lit('07' + reg[1])
@@ -154,6 +156,7 @@ class BB:
                 cb.src(ii[1])
                 cb.lit('NORTH')
                 cb.ops('a! !')
+                cb.a = None
             else:
                 assert 0, "Unrecognised %r" % ii
 
@@ -178,8 +181,8 @@ class BB:
             (_, (a, b), yes, no) = self.succ
             cb.src(a)
             cb.src(b)
-            cb.op('or')
-            binchoice(cb.jz, yes, no)
+            cb.ops('or 2* 2*')
+            binchoice(cb.jz, no, yes)
         elif self.succ[0] == 'deceq':
             (_, (reg,), yes, no) = self.succ
             cb.lit(-1)
@@ -191,10 +194,24 @@ class BB:
             cb.ra(reg)
             cb.ops('@')
             binchoice(cb.jz, yes, no)
+        elif self.succ[0] == 'jsr':
+            cb.lit(blocknums[self.succ[1]]) # rts will invert bits
+            cb.lit(DO_WRITE)
+            cb.op('!b')
+            cb.lit(-2)
+            cb.ra('r6')
+            cb.ops('@ . + dup ! !b !b')
+            cb.lit(~blocknums[self.succ[2]])
         elif self.succ[0] == 'rts':
-            cb.lit(~0)
+            cb.lit(DO_READ)
+            cb.op('!b')
+            cb.lit(2)
+            cb.ra('r6')
+            cb.ops('@ dup !b . + ! @b -')
+            # cb.lit('NORTH'); cb.ops('a! dup !'); cb.a = None
         else:
             assert 0, 'Bad succ %r' % (self.succ,)
+        # cb.lit('NORTH'); cb.ops('a! dup - !'); cb.a = None
         cb.op('!b')
         cb.finish()
 
@@ -224,7 +241,7 @@ scratch = 0
 def brbreak(b):
     """ if block b has a branch, split it """
     for i,l in enumerate(b):
-        if l.split()[0] in ('bne', 'beq'):
+        if l.split()[0] in ('bne', 'beq', 'jsr'):
             p0 = b[:i+1]
             p1 = b[i+1:]
             if p1:
@@ -272,6 +289,9 @@ def blocks(pgm):
                 s = ('tst', aa, succ, last[1])
             else:
                 assert 0, "Unknown condition %r %r" % (body[-2], body[-1])
+        elif last[0] == 'jsr':
+            s = ('jsr', succ, last[2])
+            bb = body[:-1]
         elif last[0] == 'rts':
             s = ('rts',)
             bb = body[:-1]
