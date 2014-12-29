@@ -80,15 +80,17 @@ class CodeBuf:
             self.lit(2)
             self.ra('r6')
             self.ops('@ dup !b . + ! @b')
-        elif re.match('06\(sp\)', s):
-            self.lit(DO_READ)
-            self.op('!b')
-            self.lit(6)
-            self.ra('r6')
-            self.ops('@ . + !b @b')
         else:
-            self.ra(s)
-            self.op('@')
+            m = re.match('([0-9]+)\(sp\)', s)
+            if m:
+                self.lit(DO_READ)
+                self.op('!b')
+                self.lit(int(m.group(1)))
+                self.ra('r6')
+                self.ops('@ . + !b @b')
+            else:
+                self.ra(s)
+                self.op('@')
 
     def finish(self):
         self.lit(7)
@@ -261,7 +263,10 @@ def blocks(pgm):
     for (label,b,succ) in zip(labels, pgm, labels[1:] + [None]):
         print 'x', label, b, succ
         body = b[1:]
-        last = body[-1].split()
+        if body:
+            last = body[-1].split()
+        else:
+            last = (None, None)
         if last[0] == 'br':
             s = ('br', last[1], )
             bb = body[:-1]
@@ -316,7 +321,7 @@ def encode(symb2freq):
     return sorted(heappop(heap)[1:], key=lambda p: (len(p[-1]), p))
 
 if __name__ == '__main__':
-    pgm = psplit(open("fib.s"))
+    pgm = psplit(open(sys.argv[1]))
     pgm = sum([brbreak(b) for b in pgm], [])
     pgm = [uncolon(b) for b in pgm]
     pgm = blocks(pgm)

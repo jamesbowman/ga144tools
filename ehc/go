@@ -5,7 +5,8 @@ export PYTHONPATH=../src
 # python unit.py $PORT || exit
 
 /data/pdp11/local/bin/pdp11-aout-gcc -S -Os -fomit-frame-pointer fib.c &&
-python cook.py &&
+/data/pdp11/local/bin/pdp11-aout-gcc -S -Os -fomit-frame-pointer ackermann.c &&
+python cook.py ackermann.s &&
 (cd ../src; python memload.py $PORT ../ehc/ram ) &&
 python ../src/asm.py $PORT ehc.ga ; exit
 exit
