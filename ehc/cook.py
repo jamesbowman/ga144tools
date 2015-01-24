@@ -48,6 +48,12 @@ class CodeBuf:
         self.insn.append("if " + dst)
         self.flush()
 
+    def jp(self, dst):
+        if len(self.insn) > 1:
+            self.flush()
+        self.insn.append("-if " + dst)
+        self.flush()
+
     def jump(self, dst):
         if len(self.insn) > 1:
             self.flush()
@@ -59,8 +65,11 @@ class CodeBuf:
         self.cc.append(': ' + l)
 
     def lit(self, v):
-        self.afters.append(12*" " + str(v))
-        self.op("@p")
+        if v == 0:
+            self.ops('dup dup or')
+        else:
+            self.afters.append(12*" " + str(v))
+            self.op("@p")
 
     def ra(self, reg):
         if reg == 'sp':
@@ -72,8 +81,9 @@ class CodeBuf:
             self.op('a!')
 
     def src(self, s):
+        """ Read T from source specified by s """
         if s[0] == '$':
-            self.lit(0xffff & int(s[1:], 0))
+            self.lit(int(s[1:], 0))
         elif s == '(sp)+':
             self.lit(DO_READ)
             self.op('!b')
@@ -81,16 +91,56 @@ class CodeBuf:
             self.ra('r6')
             self.ops('@ dup !b . + ! @b')
         else:
-            m = re.match('([0-9]+)\(sp\)', s)
+            m = re.match('\((..)\)', s)
             if m:
                 self.lit(DO_READ)
                 self.op('!b')
-                self.lit(int(m.group(1)))
-                self.ra('r6')
-                self.ops('@ . + !b @b')
+                self.ra(m.group(1))
+                self.ops('@ !b @b')
             else:
-                self.ra(s)
-                self.op('@')
+                m = re.match('([0-9]+)\((..)\)', s)
+                if m:
+                    self.lit(DO_READ)
+                    self.op('!b')
+                    self.lit(int(m.group(1), 0))
+                    self.ra(m.group(2))
+                    self.ops('@ . + !b @b')
+                else:
+                    self.ra(s)
+                    self.op('@')
+
+    def dst(self, s):
+        """ Write T to destination specified by s """
+        if re.match('\(..\)\+', s):
+            self.lit(DO_WRITE)
+            self.op('!b')
+            self.lit(2)
+            self.ra(s[1:3])
+            self.ops('@ dup !b . + ! !b')
+        elif re.match('-\(..\)', s):
+            self.lit(DO_WRITE)
+            self.op('!b')
+            self.lit(-2)
+            self.ra(s[2:4])
+            self.ops('@ . + dup ! !b !b')
+        else:
+            m = re.match('\((..)\)', s)
+            if m:
+                self.lit(DO_WRITE)
+                self.op('!b')
+                self.ra(m.group(1))
+                self.ops('@ !b !b')
+            else:
+                m = re.match('([0-9]+)\((..)\)', s)
+                if m:
+                    self.lit(DO_WRITE)
+                    self.op('!b')
+                    self.lit(int(m.group(1), 0))
+                    self.ra(m.group(2))
+                    self.ops('@ . + !b !b')
+                else:
+                    self.ra(s)
+                    self.op('!')
 
     def finish(self):
         self.lit(7)
@@ -123,24 +173,13 @@ class BB:
         cb.label('start')
         for l in self.code:
             ii = re.findall(r"[$\-\+()\w']+", l)
-            print ii
             if ii[0] == 'clr':
-                cb.ops('dup or')
-                cb.ra(ii[1])
-                cb.op('!')
+                cb.ops('dup dup or')
+                cb.dst(ii[1])
             elif ii[0] == 'mov':
                 (src, dst) = ii[1:]
-                if dst == '-(sp)':
-                    cb.src(src)
-                    cb.lit(DO_WRITE)
-                    cb.op('!b')
-                    cb.lit(-2)
-                    cb.ra('r6')
-                    cb.ops('@ . + dup ! !b !b')
-                else:
-                    cb.src(src)
-                    cb.ra(dst)
-                    cb.op('!')
+                cb.src(src)
+                cb.dst(dst)
             elif ii[0] == 'add':
                 (src, dst) = ii[1:]
                 cb.src(src)
@@ -154,6 +193,9 @@ class BB:
                 cb.lit(-1)
                 cb.ra(ii[1])
                 cb.ops('@ . + !')
+            elif ii[0] == 'asl':
+                cb.ra(ii[1])
+                cb.ops('@ 2* !')
             elif ii[0] == 'mfpi':
                 cb.src(ii[1])
                 cb.lit('NORTH')
@@ -182,9 +224,25 @@ class BB:
         elif self.succ[0] == 'ifeq':
             (_, (a, b), yes, no) = self.succ
             cb.src(a)
-            cb.src(b)
-            cb.ops('or 2* 2*')
+            if b == "$-01":
+                cb.ops('- 2* 2*')
+            else:
+                cb.src(b)
+                cb.ops('or 2* 2*')
             binchoice(cb.jz, no, yes)
+        elif self.succ[0] == 'iflt':
+            (_, (a, b), yes, no) = self.succ
+            cb.src(a)
+            cb.lit(65535)
+            cb.op('and')
+            if 1 and b.startswith('$'):
+                cb.lit(~(int(b[1:], 0) & 65535))
+            else:
+                cb.src(b)
+                cb.lit(65535)
+                cb.ops('and -')
+            cb.ops('. +')
+            binchoice(cb.jp, no, yes)
         elif self.succ[0] == 'deceq':
             (_, (reg,), yes, no) = self.succ
             cb.lit(-1)
@@ -192,9 +250,8 @@ class BB:
             cb.ops('@ . + dup !')
             binchoice(cb.jz, yes, no)
         elif self.succ[0] == 'tst':
-            (_, (reg,), yes, no) = self.succ
-            cb.ra(reg)
-            cb.ops('@')
+            (_, (src,), yes, no) = self.succ
+            cb.src(src)
             binchoice(cb.jz, yes, no)
         elif self.succ[0] == 'jsr':
             cb.lit(blocknums[self.succ[1]]) # rts will invert bits
@@ -243,13 +300,15 @@ scratch = 0
 def brbreak(b):
     """ if block b has a branch, split it """
     for i,l in enumerate(b):
-        if l.split()[0] in ('bne', 'beq', 'jsr'):
+        if l.split()[0] in ('bne', 'beq', 'bgt', 'blt', 'jsr'):
             p0 = b[:i+1]
             p1 = b[i+1:]
             if p1:
                 global scratch
                 scratch += 1
-                return [p0, ['X%d:' % scratch] + p1]
+                rest = brbreak(p1)
+                rest[0] = ['X%d:' % scratch] + rest[0]
+                return [p0] + rest
             else:
                 return [p0]
     return [b]
@@ -300,6 +359,14 @@ def blocks(pgm):
         elif last[0] == 'rts':
             s = ('rts',)
             bb = body[:-1]
+        elif last[0] == 'bgt':
+            (cmp, args) = body[-2].split()
+            aa = args.split(",")
+            bb = body[:-2]
+            if cmp == 'cmp':
+                s = ('iflt', aa, last[1], succ)
+            else:
+                assert 0
         else:
             s = ('br', succ)
             bb = body
@@ -364,13 +431,13 @@ if __name__ == '__main__':
         gg.write('\n')
         gg.write(b.convert(bname, blocknums))
         gg.close()
-        print
 
         ga = "g%d" % bn
         n.listing = []
         n.load(open(ga).read())
         # Now n.prefix is the prefix, n.load_pgm is the RAM contents
-        assert len(n.load_pgm) <= 56
+        print bname, b
+        assert len(n.load_pgm) <= 56, "Takes %d" % len(n.load_pgm)
         # Construct a bootstream
         print >> open("%s.lst" % ga, "w"), "\n".join(n.listing)
         r = [n.assemble("dup or dup".split()),
@@ -400,4 +467,6 @@ if __name__ == '__main__':
         n = sum(symb2freq.values())
         ntop63 = sum(symb2freq[s] for s in top63)
         nbits = ntop63 * 6 + (n - ntop63) * 24
-        print 'Simple scheme,', nbits, nbits / 16
+        print 'Simple scheme,', nbits, nbits / 16, 'bytes=%d' % (nbits / 8)
+        for s in set(symb2freq) - set(top63):
+            print s,symb2freq[s]

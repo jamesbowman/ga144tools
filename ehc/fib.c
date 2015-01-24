@@ -15,4 +15,5 @@ int fib(unsigned int n)
 void Main(void)
 {
   OUTPUT(fib(65535));
+  OUTPUT(0x947);
 }

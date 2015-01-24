@@ -30,4 +30,7 @@ _Main:
 ;# 17 "fib.c" 1
 	mfpi r0
 ;# 0 "" 2
+;# 18 "fib.c" 1
+	mfpi $04507
+;# 0 "" 2
 	rts pc

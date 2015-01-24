@@ -1,6 +1,54 @@
 include(../src/ga144.hdr)
 
-include(../src/708out.hdr)
+---------------------------- 708 ----------------------------
+: cold
+    @p b! @p @p
+    0x15d
+    0x80
+    63
+    push a!
+
+    @p a!
+        SOUTH
+    @p push
+        100
+: dump
+    @
+    call emit18
+    drop next dump
+
+    @p call emit18
+    0x00947
+
+: again
+    jump again
+
+: emit18 ( x -- x)
+    @p call emit
+    0xa5
+    drop call emit
+    call emit
+: emit
+    @p call bit
+    0
+    @p push
+    7
+: bloop
+    dup call bit
+    2/ next bloop
+
+    call bit1
+: bit1
+    @p
+    1
+: bit
+    @p and @p @p
+    1
+    3
+    865 \ 3460 for 115200
+    push or !b
+    unext ;
+
 
 ---------------------------- 608 ----------------------------
 WIRE(SOUTH, NORTH)

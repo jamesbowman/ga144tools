@@ -1,14 +1,28 @@
 PORT=/dev/tty.usbserial-000013FA
-PORT=/dev/ttyUSB0
+PORT=/dev/ttyUSB1
 
 export PYTHONPATH=../src
 # python unit.py $PORT || exit
 
+/data/pdp11/local/bin/pdp11-aout-gcc -S -O9 -fomit-frame-pointer fib2.c &&
+/data/pdp11/local/bin/pdp11-aout-gcc -S -O9 -fomit-frame-pointer sieve.c &&
 /data/pdp11/local/bin/pdp11-aout-gcc -S -Os -fomit-frame-pointer fib.c &&
 /data/pdp11/local/bin/pdp11-aout-gcc -S -Os -fomit-frame-pointer ackermann.c &&
-python cook.py ackermann.s &&
+if false
+then
+  python cook.py fib.s &&
+  (cd ../src; python memload.py $PORT ../ehc/ram ) &&
+  python ../src/asm.py $PORT ehc.ga
+
+  python cook.py ackermann.s &&
+  (cd ../src; python memload.py $PORT ../ehc/ram ) &&
+  python ../src/asm.py $PORT ehc.ga ; exit
+fi
+
+python cook.py fib2.s || exit
 (cd ../src; python memload.py $PORT ../ehc/ram ) &&
 python ../src/asm.py $PORT ehc.ga ; exit
+
 exit
 
 # python asm.py $PORT helloworld.ga ; exit
