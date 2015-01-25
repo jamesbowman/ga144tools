@@ -59,6 +59,12 @@ class CodeBuf:
         self.insn.append("-if " + dst)
         self.flush()
 
+    def next(self, dst):
+        if len(self.insn) > 1:
+            self.flush()
+        self.insn.append("next " + dst)
+        self.flush()
+
     def jump(self, dst):
         if len(self.insn) > 1:
             self.flush()
@@ -100,7 +106,7 @@ class CodeBuf:
             self.ra('R1')
             self.ops('@ dup !b . + ! @b')
         else:
-            m = re.match('\((..)\)', s)
+            m = re.match('@(..)', s)
             if m:
                 self.lit(DO_READ)
                 self.op('!b')
@@ -195,6 +201,11 @@ class BB:
                 cb.src(src)
                 cb.ra(dst)
                 cb.ops('@ . + !')
+            elif ii[0] == 'SUB.W':
+                (src, dst) = ii[1:]
+                cb.src(src)
+                cb.ra(dst)
+                cb.ops('@ - . + - !')
             elif ii[0] == 'inc':
                 cb.lit(1)
                 cb.ra(ii[1])
@@ -212,21 +223,35 @@ class BB:
                 cb.ops('a! !')
                 cb.a = None
             elif ii[0] == 'PUSHM.W':
-                for r in ('R10', 'R9'):
-                    cb.src(r)
-                    cb.lit(DO_WRITE)
-                    cb.op('!b')
-                    cb.lit(-2)
-                    cb.src('R1')
-                    cb.ops('. + dup !b ! !b')
+                nregs = int(ii[1][1:])
+                firstreg = int(ii[2][1:])
+                cb.lit(nregs - 1)
+                cb.ops('push')
+                cb.lit(-1)          # used to bump both A and R1, in N
+                cb.src('R1')        # R1 in T
+                cb.ra('R%d' % firstreg)
+                cb.label('PUSHM')
+                cb.lit(DO_WRITE)
+                cb.ops('!b')
+                cb.ops('over 2* . + dup !b @ !b')
+                cb.ops('over a + a!')
+                cb.next('PUSHM')
+                cb.dst('R1')
             elif ii[0] == 'POPM.W':
-                for r in ('R9', 'R10'):
-                    cb.lit(DO_READ)
-                    cb.op('!b')
-                    cb.lit(2)
-                    cb.src('R1')
-                    cb.ops('dup !b . + ! @b')
-                    cb.dst(r)
+                nregs = int(ii[1][1:])
+                firstreg = int(ii[2][1:]) - (nregs - 1)
+                cb.lit(nregs - 1)
+                cb.ops('push')
+                cb.src('R1')
+                cb.ra('R%d' % firstreg)
+                cb.label('POPM')
+                cb.lit(DO_READ)
+                cb.op('!b')
+                cb.ops('dup !b')
+                cb.lit(2)
+                cb.ops('. + @b !+')
+                cb.next('POPM')
+                cb.dst('R1')
             else:
                 assert 0, "Unrecognised %r" % ii
 
@@ -300,7 +325,7 @@ class BB:
                 cb.src(dst)
                 cb.op('-')
             else:
-                cb.lit(~blocknums[self.succ[2]])
+                cb.lit(~blocknums[self.succ[2][1:]])
         elif self.succ[0] == 'rts':
             cb.lit(DO_READ)
             cb.op('!b')
@@ -340,7 +365,7 @@ scratch = 0
 def brbreak(b):
     """ if block b has a branch, split it """
     for i,l in enumerate(b):
-        if set(l.split()) & set(['JNE', 'JEQ', 'CALL']):
+        if set(l.split()) & set(['JNE', 'JEQ', 'JL', 'JGE', 'CALL']):
             p0 = b[:i+1]
             p1 = b[i+1:]
             if p1:
@@ -377,6 +402,10 @@ def blocks(pgm):
                 s = ('ifne', aa, last[-1], succ)
             elif last[4] == 'JEQ':
                 s = ('ifeq', aa, last[-1], succ)
+            elif last[4] == 'JL':
+                s = ('iflt', aa, last[-1], succ)
+            elif last[4] == 'JGE':
+                s = ('iflt', aa, succ, last[-1])
             else:
                 assert 0, "Unknown condition %r" % last
         elif last[0] == 'bne':
@@ -496,7 +525,7 @@ if __name__ == '__main__':
         n.listing = []
         n.load(open(ga).read())
         # Now n.prefix is the prefix, n.load_pgm is the RAM contents
-        assert len(n.load_pgm) <= 51, "Takes %d" % len(n.load_pgm)
+        assert len(n.load_pgm) <= 51, "%s takes %d" % (ga, len(n.load_pgm))
         # Construct a bootstream
         print >> open("%s.lst" % ga, "w"), "\n".join(n.listing)
         if len(n.prefix) == 1:

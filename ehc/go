@@ -1,5 +1,5 @@
 PORT=/dev/tty.usbserial-000013FA
-PORT=/dev/ttyUSB1
+PORT=/dev/ttyUSB0
 
 export PYTHONPATH=../src
 # python unit.py $PORT || exit
@@ -23,7 +23,7 @@ then
   python ../src/asm.py $PORT ehc.ga ; exit
 fi
 
-python 430cook.py ackermann.s || exit
+python 430cook.py sieve.s || exit
 (cd ../src; python memload.py $PORT ../ehc/ram ) &&
 python ../src/asm.py $PORT ehc.ga ; exit
 

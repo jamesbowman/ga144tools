@@ -13,7 +13,7 @@
  *
  */
 
-#define OUTPUT(X) __asm__("mfpi %0" : : "" (X))
+#define OUTPUT(X) __asm__("output %0" : : "" (X))
 
 
 #define SIZE 8190
@@ -57,5 +57,6 @@ sieve ()
 
 int Main ()
 {
-  return(sieve());
+  for (;;)
+    OUTPUT(sieve());
 }
