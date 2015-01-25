@@ -4,10 +4,14 @@ PORT=/dev/ttyUSB1
 export PYTHONPATH=../src
 # python unit.py $PORT || exit
 
-/data/pdp11/local/bin/pdp11-aout-gcc -S -O9 -fomit-frame-pointer fib2.c &&
-/data/pdp11/local/bin/pdp11-aout-gcc -S -O9 -fomit-frame-pointer sieve.c &&
-/data/pdp11/local/bin/pdp11-aout-gcc -S -Os -fomit-frame-pointer fib.c &&
-/data/pdp11/local/bin/pdp11-aout-gcc -S -Os -fomit-frame-pointer ackermann.c &&
+for f in fib.c fib2.c ackermann.c sieve.c
+do
+  echo /data/msp430/local/bin/msp430-elf-gcc -S -Os $f
+done
+# /data/pdp11/local/bin/pdp11-aout-gcc -S -O9 -fomit-frame-pointer fib2.c &&
+# /data/pdp11/local/bin/pdp11-aout-gcc -S -O9 -fomit-frame-pointer sieve.c &&
+# /data/pdp11/local/bin/pdp11-aout-gcc -S -Os -fomit-frame-pointer fib.c &&
+# /data/pdp11/local/bin/pdp11-aout-gcc -S -Os -fomit-frame-pointer ackermann.c &&
 if false
 then
   python cook.py fib.s &&
@@ -19,7 +23,7 @@ then
   python ../src/asm.py $PORT ehc.ga ; exit
 fi
 
-python cook.py fib2.s || exit
+python 430cook.py ackermann.s || exit
 (cd ../src; python memload.py $PORT ../ehc/ram ) &&
 python ../src/asm.py $PORT ehc.ga ; exit
 
