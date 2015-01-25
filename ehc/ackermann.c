@@ -30,7 +30,7 @@
  *
  */
 
-#define OUTPUT(X) __asm__("mfpi %0" : : "" (X))
+#define OUTPUT(X) __asm__("output %0" : : "" (X))
 
 static int 
 A (int m, int n)

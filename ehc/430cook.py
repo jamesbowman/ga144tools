@@ -482,22 +482,31 @@ if __name__ == '__main__':
         for c in comment:
             gg.write(r"\ " + c + "\n")
         gg.write('\n')
+        if bname == 'Main':
+            # Set up SP, R1 is 65536
+            gg.write('    @p @p a!\n')
+            gg.write('      65536\n')
+            gg.write('      51\n')
+            gg.write('    !\n')
+
         gg.write(b.convert(bname, blocknums))
         gg.close()
 
         ga = "g%d" % bn
         n.listing = []
-        print ga, n.labels
         n.load(open(ga).read())
         # Now n.prefix is the prefix, n.load_pgm is the RAM contents
         assert len(n.load_pgm) <= 51, "Takes %d" % len(n.load_pgm)
         # Construct a bootstream
         print >> open("%s.lst" % ga, "w"), "\n".join(n.listing)
+        if len(n.prefix) == 1:
+            loadpart = [n.assemble("@p !+ unext ;".split())] + n.load_pgm # trim off "jump 0"
+        else:
+            loadpart = [n.assemble("@p !+ unext".split())] + n.load_pgm + n.prefix
         r = [n.assemble("dup or dup".split()),
              n.assemble("push a! @p".split()),
              len(n.load_pgm) - 1,
-             n.assemble(["push"]),
-             n.assemble("@p !+ unext ;".split())] + n.load_pgm + n.prefix[:-1] # trim off "jump 0"
+             n.assemble(["push"])] + loadpart
         print ga, 'RAM', len(n.load_pgm), 'bootstream', len(r)
         loadblk(bn, r)
         for ch in r:

@@ -6,7 +6,7 @@ export PYTHONPATH=../src
 
 for f in fib.c fib2.c ackermann.c sieve.c
 do
-  echo /data/msp430/local/bin/msp430-elf-gcc -S -Os $f
+  /data/msp430/local/bin/msp430-elf-gcc -S -Os $f
 done
 # /data/pdp11/local/bin/pdp11-aout-gcc -S -O9 -fomit-frame-pointer fib2.c &&
 # /data/pdp11/local/bin/pdp11-aout-gcc -S -O9 -fomit-frame-pointer sieve.c &&
