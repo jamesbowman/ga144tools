@@ -27,6 +27,7 @@ Nodes 108 through 608 are wire nodes; they just carry data upwards towards node 
 
 To use it, connect the USB cable to USB port A on your GA144 board, and (assuming your device is at /dev/ttyUSB0) do:
 
+    cd src
     python asm.py /dev/ttyUSB0 fibonacci.ga
 
 You should see something like this:
@@ -43,11 +44,11 @@ You should see something like this:
     
 Instruction set notes:
 
-  http://www.colorforth.com/inst.htm
+  https://mschuldt.github.io/www.colorforth.com/inst.htm
 
-  http://www.colorforth.com/arith.htm
+  https://mschuldt.github.io/www.colorforth.com/arith.htm
 
-  http://www.colorforth.com/etherCode.htm
+  https://mschuldt.github.io/www.colorforth.com/etherCode.htm
 
 Booting:
 
