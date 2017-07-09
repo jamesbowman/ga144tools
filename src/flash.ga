@@ -1,0 +1,57 @@
+include(ga144.hdr)
+
+include(708out.hdr)
+
+---------------------------- 608 ----------------------------
+WIRE(WEST, NORTH)
+
+---------------------------- 607 ----------------------------
+WIRE(WEST, EAST)
+
+---------------------------- 606 ----------------------------
+WIRE(WEST, EAST)
+
+---------------------------- 605 ----------------------------
+WIRE(NORTH, EAST)
+
+---------------------------- 705 ----------------------------
+\ See block 1428 for ROM definitions
+\ For usage notes:
+\   https://mschuldt.github.io/www.colorforth.com/flash.htm
+\ EVB001 note: check jumpers J20 and J26
+
+define(_select,   `0xcc')   \ dw-dw
+define(_8o,       `0xc2')   \ dw-dw'
+define(_18ibits,  `0xd9')   \ d-dw
+define(_ibits,    `0xdb')   \ 
+    @p a!
+      SOUTH
+    @p b!
+      io
+    @p                      \ d (delay), always on stack
+      0
+: again
+    @p call cmd
+      eval(`0x90 << 10')    \ RDID
+    @p
+      0
+    call _8o
+    call _8o
+    call _8o
+    drop
+
+    call 16i
+    !
+
+    jump again
+
+: cmd   \ dn-d
+    call _select
+: 8!    \ dn-d
+    call _8o
+    drop ;
+
+: 16i   \ d-dw
+    dup @p push
+      15
+    jump _ibits
