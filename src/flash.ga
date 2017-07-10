@@ -43,7 +43,19 @@ define(_ibits,    `0xdb')   \
     call 16i
     !
 
-    jump again
+    @p call cmd
+      eval(`0x03 << 10')    \ read
+    @p
+      0
+    call _8o
+    call _8o
+    call _8o
+    drop
+
+: readloop
+    call 16i
+    !
+    jump readloop
 
 : cmd   \ dn-d
     call _select
