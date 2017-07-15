@@ -61,7 +61,7 @@ class Viz:
                     ctx.set_source_rgb(0, .0, .1)
                 self.cell(r, c, label)
 
-        if 1:
+        if 0:
             ctx.set_source_rgba(1, 1, 0, 0.5)
             ctx.set_line_width(9)
             ctx.move_to(*self.center(*self.path[0]))

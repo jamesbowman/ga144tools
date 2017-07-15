@@ -8,8 +8,14 @@
 
     @p a!
         SOUTH
+ifdef(`READ_FOREVER', `
+: again
+    @ call emit18
+    drop jump again
+', `
+: again
     @p push
-        25
+        141
 : dump
     @
     call emit18
@@ -20,6 +26,7 @@
 
 : again
     jump again
+')
 
 : emit18 ( x -- x)
     @p call emit

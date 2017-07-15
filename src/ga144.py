@@ -379,8 +379,10 @@ class GA144:
         code = {}
         c = []
         p1 = Popen(["m4", sourcefile], stdout = PIPE)
+        log = open("log", "w")
         for l in p1.stdout:
         # for l in open(sourcefile):
+            log.write(l)
             if l[0] == '-':
                 n = l.split()[1]
                 c = []
@@ -410,6 +412,8 @@ class GA144:
         if not listen:
             time.sleep(0.1)
         t0 = time.time()
+        if not listen:
+            return ser
         while listen:
             s = ser.read(4)
             (v, ) = struct.unpack("<I", s)

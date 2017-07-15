@@ -1,0 +1,258 @@
+include(ga144.hdr)
+
+include(708out.hdr)
+
+PLOUGH(`WIRE', 605, NORTH, EAST, EAST, EAST, NORTH)
+
+---------------------------- 705 ----------------------------
+\ See block 1428 for ROM definitions
+\ For usage notes:
+\   https://mschuldt.github.io/www.colorforth.com/flash.htm
+\   http://ww1.microchip.com/downloads/en/DeviceDoc/25024C.pdf
+\ EVB001 note: check jumpers J20 and J26
+
+define(_select,   `0xcc')   \ dw-dw
+define(_8o,       `0xc2')   \ dw-dw'
+define(_18ibits,  `0xd9')   \ d-dw
+define(_ibits,    `0xdb')   \ 
+
+define(ljust, `eval(`$1 << 10')')
+    @p a!
+      WEST
+    @p @p                     \ d (delay), always on stack
+      0x947
+      0
+: again
+    @p call 2cmd
+      eval(`0x5001 << 2')     \ EWSR Enable-Write-Status_Register
+    @p call 8!
+      0
+
+    @p call 2cmd
+      eval(`0x0620 << 2')     \ Sector-Erase
+    @ dup push
+    call addr
+
+    call busy
+
+    @p call 2cmd
+      eval(`0x06ad << 2')     \ Auto-Address-Increment-Programming
+
+    pop call addr
+
+    @ call 16!
+
+    @p push
+      70 \ 2046
+: wrloop
+    call _select
+    @p push
+      12173                   \ 28 us
+    unext
+    @p call 8!
+      eval(`0xad << 10') 
+    @ call 16!
+    next wrloop
+
+    @p call cmd
+      eval(`0x04 << 10')      \ WRDI
+      
+    call busy
+
+    @p a!
+      SOUTH
+: halt
+    ! jump halt
+
+: busy
+    @p call cmd
+      eval(`0x05 << 10')      \ RDSR Read-Status-Register
+    call 8i
+    dup 2/ 2*
+    or if drop;
+    drop jump busy
+
+: addr     \ dn-d
+    call _8o
+    call _8o
+    jump 8!
+
+: 2cmd  \ dn-d
+    call _select
+    call _8o
+: cmd   \ dn-d
+    call _select
+: 8!    \ dn-d
+    call _8o
+: drop;
+    drop ;
+
+: 16!   \ dn-d
+    dup push
+    @p push                   \ left-justify low byte
+      9
+    2* unext
+    call 8!
+    pop 2* 2*                 \ left-justify high byte
+    jump 8!
+      
+: 8i   \ d-dw
+    dup @p push
+      7
+    jump _ibits
+: 16i   \ d-dw
+    dup @p push
+      15
+    jump _ibits
+
+---------------------------- 704 ----------------------------
+\ Counting
+    @p @p @p @p
+      WEST
+      EAST
+      3
+      60
+    push a! b!
+: main
+    @+ !b unext
+    a!
+: wire
+    @ !b jump wire
+
+    0
+    100
+    101
+    102
+    103
+    104
+    105
+    106
+    107
+    108
+    109
+    110
+    111
+    112
+    113
+    114
+    115
+    116
+    117
+    118
+    119
+    120
+    121
+    122
+    123
+    124
+    125
+    126
+    127
+    128
+    129
+    130
+    131
+    132
+    133
+    134
+    135
+    136
+    137
+    138
+    139
+    140
+    141
+    142
+    143
+    144
+    145
+    146
+    147
+    148
+    149
+    150
+    151
+    152
+    153
+    154
+    155
+    156
+    157
+    158
+    159
+---------------------------- 703 ----------------------------
+\ Counting
+    @p @p @p @p
+      WEST
+      EAST
+      3
+      59
+    push a! b!
+: main
+    @+ !b unext
+    a!
+: wire
+    @ !b jump wire
+
+    200
+    201
+    202
+    203
+    204
+    205
+    206
+    207
+    208
+    209
+    210
+    211
+    212
+    213
+    214
+    215
+    216
+    217
+    218
+    219
+    220
+    221
+    222
+    223
+    224
+    225
+    226
+    227
+    228
+    229
+    230
+    231
+    232
+    233
+    234
+    235
+    236
+    237
+    238
+    239
+    240
+    241
+    242
+    243
+    244
+    245
+    246
+    247
+    248
+    249
+    250
+    251
+    252
+    253
+    254
+    255
+    256
+    257
+    258
+    259
+    260
+

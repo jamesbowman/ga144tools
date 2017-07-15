@@ -1,5 +1,5 @@
 define(WIRE, `
-
+\ Carry words from $1 to $2
     @p a! @p
         $1
         $2
@@ -27,3 +27,37 @@ define(LOADR_8, `
     push push push
     push push push')
 define(LOADR_4, `LOADR_8($1, $2, $3, $4, $1, $2, $3, $4)')
+define(LOADR_2, `LOADR_4($1, $2, $1, $2)')
+
+dnl  NEIGHBOR(node, dir) - give node's neighbor in direction dir
+
+define(`NEIGHBOR', `dnl
+ifelse($2, NORTH, incr(substr($1, 0, 1))substr($1, 1),
+       $2, SOUTH, decr(substr($1, 0, 1))substr($1, 1),
+       $2, WEST, substr($1, 0, 1)eval(substr($1, 1) - 1, 10, 2),
+       $2, EAST, substr($1, 0, 1)eval(substr($1, 1) + 1, 10, 2),
+  )')
+
+dnl MIRROR(dir) - give opposite direction
+
+define(`MIRROR', `dnl
+ifelse($1, NORTH, SOUTH,
+       $1, SOUTH, NORTH,
+       $1, WEST, EAST,
+       $1, EAST, WEST)')
+
+dnl  PLOUGH(module, node, from, path...)
+dnl
+dnl  Connected component builder.
+dnl  Make an instance of MODULE at NODE, connecting NODE's
+dnl  FROM to first in PATH. Repeat for the rest of PATH.
+dnl
+dnl  e.g. WIRES, 202 carries N to E, 203 W to E, 204 W to E
+dnl     PLOUGH(`WIRE', 202, NORTH, EAST, EAST)
+
+define(`PLOUGH', `
+---------------------------- $2 ----------------------------
+$1($3, $4)
+ifelse(`$5', `', `', `
+PLOUGH(`$1', NEIGHBOR($2, $4), MIRROR($4), shift(shift(shift(shift($@)))))
+')')
