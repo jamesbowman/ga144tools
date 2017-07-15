@@ -72,6 +72,7 @@ class Node():
         self.symbols['lsh'] = 0xd9
         self.symbols['rsh'] = 0xdb
         self.symbols.update(self.labels)
+        self.attr = {}
         self.listing = []
         row = int(name[0])
         col = int(name[1:3])
@@ -203,6 +204,9 @@ class Node():
             target = prefix
             BACKSLASH = "\\"
             for lineno, ol in enumerate(lines, 1):
+                if p == 0 and BACKSLASH + ' attr:' in ol:
+                    v = ol.split()
+                    self.attr[v[2]] = v[3:]
                 if BACKSLASH in ol:
                     l = ol[:ol.index(BACKSLASH)]
                 else:
@@ -394,7 +398,7 @@ class GA144:
             self.node[n].bgcolor = self.paint_color
 
     def active(self):
-        return [id for (id,n) in self.node.items() if n.isactive()]
+        return {id:n for (id,n) in self.node.items() if n.isactive()}
 
     def render(self, ctx, cairo):
         for n in self.node.values():

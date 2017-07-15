@@ -1,5 +1,6 @@
 define(WIRE, `
 \ Carry words from $1 to $2
+\ attr: render wire $1 $2
     @p a! @p
         $1
         $2
