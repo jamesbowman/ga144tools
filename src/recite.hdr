@@ -1,0 +1,17 @@
+define(RECITE, `
+\ Send contents to $2, then carry $1 to $2
+\ attr: render recite $1 $2
+\ attr: recite
+    @p @p @p @p
+      $1
+      $2
+      3
+      60
+    push a! b!
+: main
+    @+ !b unext
+    a!
+: wire
+    @ !b jump wire
+')
+

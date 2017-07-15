@@ -1,0 +1,5 @@
+define(_select,   `0xcc')   \ dw-dw
+define(_8o,       `0xc2')   \ dw-dw'    Note that w is left-justified
+define(_18ibits,  `0xd9')   \ d-dw
+define(_ibits,    `0xdb')   \ 
+

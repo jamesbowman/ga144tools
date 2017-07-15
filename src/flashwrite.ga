@@ -1,8 +1,8 @@
 include(ga144.hdr)
 
+PLOW(`WIRE', 706, WEST, EAST, EAST)
+define(READ708, WEST)
 include(708out.hdr)
-
-PLOUGH(`WIRE', 605, NORTH, EAST, EAST, EAST, NORTH)
 
 ---------------------------- 705 ----------------------------
 \ See block 1428 for ROM definitions
@@ -11,10 +11,7 @@ PLOUGH(`WIRE', 605, NORTH, EAST, EAST, EAST, NORTH)
 \   http://ww1.microchip.com/downloads/en/DeviceDoc/25024C.pdf
 \ EVB001 note: check jumpers J20 and J26
 
-define(_select,   `0xcc')   \ dw-dw
-define(_8o,       `0xc2')   \ dw-dw'
-define(_18ibits,  `0xd9')   \ d-dw
-define(_ibits,    `0xdb')   \ 
+include(romSPI.hdr)
 
 define(ljust, `eval(`$1 << 10')')
     @p a!
@@ -43,7 +40,7 @@ define(ljust, `eval(`$1 << 10')')
     @ call 16!
 
     @p push
-      70 \ 2046
+      2046
 : wrloop
     call _select
     @p push
@@ -60,7 +57,7 @@ define(ljust, `eval(`$1 << 10')')
     call busy
 
     @p a!
-      SOUTH
+      EAST
 : halt
     ! jump halt
 
@@ -72,17 +69,17 @@ define(ljust, `eval(`$1 << 10')')
     or if drop;
     drop jump busy
 
-: addr     \ dn-d
+: addr     \ dn-d             \ Send 64*n as a 24-bit address
     call _8o
     call _8o
     jump 8!
 
-: 2cmd  \ dn-d
+: 2cmd  \ dn-d                \ Send n as a command pair
     call _select
     call _8o
-: cmd   \ dn-d
+: cmd   \ dn-d                \ Send n as a command
     call _select
-: 8!    \ dn-d
+: 8!    \ dn-d                \ Send n
     call _8o
 : drop;
     drop ;
@@ -100,90 +97,12 @@ define(ljust, `eval(`$1 << 10')')
     dup @p push
       7
     jump _ibits
-: 16i   \ d-dw
-    dup @p push
-      15
-    jump _ibits
 
-define(PLAYBACK, `
-\ Send contents to $2, then carry $1 to $2
-\ attr: render playback $1 $2
-    @p @p @p @p
-      $1
-      $2
-      3
-      60
-    push a! b!
-: main
-    @+ !b unext
-    a!
-: wire
-    @ !b jump wire
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-    0
-')
+include(recite.hdr)
 
-PLOUGH(`PLAYBACK', 004, EAST,
-  NORTH, NORTH, NORTH, NORTH, NORTH, NORTH, WEST, SOUTH, SOUTH, SOUTH, SOUTH, SOUTH, SOUTH, WEST,
+define(6S, `SOUTH, SOUTH, SOUTH, SOUTH, SOUTH, SOUTH')
+PLOW(`RECITE', 604, SOUTH,
+                                            WEST, SOUTH, SOUTH, SOUTH, SOUTH, SOUTH, SOUTH, WEST,
   NORTH, NORTH, NORTH, NORTH, NORTH, NORTH, WEST, SOUTH, SOUTH, SOUTH, SOUTH, SOUTH, SOUTH, WEST,
   NORTH, NORTH, NORTH, NORTH, NORTH, NORTH, NORTH,
   EAST, EAST, EAST, EAST, EAST)

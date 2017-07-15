@@ -7,7 +7,7 @@
     push a!
 
     @p a!
-        SOUTH
+        ifdef(`READ708', READ708, SOUTH)
 ifdef(`READ_FOREVER', `
 : again
     @ call emit18

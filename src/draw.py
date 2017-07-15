@@ -55,7 +55,7 @@ class Viz:
         ctx.show_text(label)
         ctx.restore()
 
-    def render_playback(self, r, c, label, src, dst):
+    def render_recite(self, r, c, label, src, dst):
         self.render_wire(r, c, label, src, dst, 16)
 
     def render_wire(self, r, c, label, src, dst, width = 6):

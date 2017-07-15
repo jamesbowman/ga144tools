@@ -380,6 +380,7 @@ class GA144:
         self.paint_color = color
 
     def loadprogram(self, sourcefile):
+        self.order = []
         code = {}
         c = []
         p1 = Popen(["m4", sourcefile], stdout = PIPE)
@@ -391,6 +392,7 @@ class GA144:
                 n = l.split()[1]
                 c = []
                 code[n] = c
+                self.order.append(n)
             else:
                 c.append(l)
         for n,c in sorted(code.items()):
@@ -404,14 +406,18 @@ class GA144:
         for n in self.node.values():
             n.render(ctx, cairo)
 
-    def download(self, port, speed, listen = True):
-        import serial
-        ser = serial.Serial(port, speed)
+    def send(self, ser):
         ser.setRTS(0)   # Reboot by dropping RTS
+        time.sleep(.01)
         ser.setRTS(1)
         # ser.dsrdtr = True
         ser.write(self.async())
         ser.flush()
+        
+    def download(self, port, speed, listen = True):
+        import serial
+        ser = serial.Serial(port, speed)
+        self.send(ser)
         self.announce("DOWNLOAD COMPLETE")
         if not listen:
             time.sleep(0.1)

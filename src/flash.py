@@ -1,8 +1,11 @@
+import time
 import sys
-from ga144 import GA144
 import array
 import struct
-import itertools
+
+import serial
+
+from ga144 import GA144
 
 class FlashReader(GA144):
     def __init__(self, port, dumpfile, length):
@@ -30,12 +33,31 @@ class FlashWriter(GA144):
         GA144.__init__(self)
         self.loadprogram("flashwrite.ga")
         print "\n".join(self.node['705'].listing)
-        print self.node['704'].prefix
-        print self.node['704'].load_pgm
-        self.node['704'].load_pgm[5] = 0xdead
-        ser = self.download(port, 460800, listen = True)
-        # s = unpack(ser)
-        # print "recv %02x %02x" % (next(s), next(s))
+
+        im = open(flashfile)
+        offset = 0
+        ser = serial.Serial(port, 460800)
+        while True:
+            sector = im.read(4096)
+            if len(sector) == 0:
+                break
+            print "%4dK " % (offset / 1024),
+            payload = [offset / 64] + array.array('H', sector).tolist()
+            self.stow(payload)
+            self.send(ser)
+            ser.read(8)
+            print "OK"
+            offset += 4096
+
+    def recites(self):
+        # Return the recite nodes, in head-to-tail order
+        return [n for n in self.order if 'recite' in self.node[n].attr][::-1]
+
+    def stow(self, payload):
+        C = 61
+        assert (61 * len(self.recites())) >= len(payload)
+        for i,n in zip(range(0, len(payload), C), self.recites()):
+            self.node[n].load_pgm[3:] = payload[i:i + C]
 
 if __name__ == '__main__':
     port = sys.argv[1]
