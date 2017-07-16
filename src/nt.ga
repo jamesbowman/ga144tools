@@ -1,0 +1,60 @@
+include(ga144.hdr)
+
+define(READ_FOREVER, `')
+include(708out.hdr)
+
+PLOW(`WIRE', 606, WEST, EAST, EAST, NORTH)
+
+---------------------------- 705 ----------------------------
+\ See block 1428 for ROM definitions
+\ For usage notes:
+\   https://mschuldt.github.io/www.colorforth.com/flash.htm
+\   http://ww1.microchip.com/downloads/en/DeviceDoc/25024C.pdf
+\ EVB001 note: check jumpers J20 and J26
+
+include(romSPI.hdr)
+
+    @p a!
+      SOUTH
+    @p b!
+      io
+    @p                      \ d (delay), always on stack
+      0
+: again
+    @p call cmd
+      eval(`0x03 << 10')    \ read
+    @
+    call _8o
+    call _8o
+    call _8o
+    drop
+    call 8i
+    push
+: readloop
+    call _18ibits
+    ! next readloop
+    jump again
+
+: cmd   \ dn-d
+    call _select
+: 8!    \ dn-d
+    call _8o
+    drop ;
+
+: 8i   \ d-dw
+    dup dup or
+    @p push
+      7
+    jump _ibits
+
+---------------------------- 605 ----------------------------
+
+    @p @p
+      NORTH
+      EAST
+    a! b!
+: again
+    @p !b
+      0
+: rd
+    @b ! jump rd
