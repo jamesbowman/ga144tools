@@ -13,7 +13,7 @@ class FlashReader(GA144):
         length = int(length, 0)
         print 'length', length
         GA144.__init__(self)
-        self.loadprogram("flash.ga")
+        self.loadprogram("flashread.ga")
         ser = self.download(port, 460800, listen = False)
 
         s = None
