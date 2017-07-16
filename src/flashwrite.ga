@@ -13,9 +13,8 @@ include(708out.hdr)
 
 include(romSPI.hdr)
 
-define(ljust, `eval(`$1 << 10')')
     @p a!
-      WEST
+      WEST                    \ head of the RECITE chain
     @p @p                     \ d (delay), always on stack
       0x947
       0
@@ -100,9 +99,10 @@ define(ljust, `eval(`$1 << 10')')
 
 include(recite.hdr)
 
-define(6S, `SOUTH, SOUTH, SOUTH, SOUTH, SOUTH, SOUTH')
+define(S6, `SOUTH, SOUTH, SOUTH, SOUTH, SOUTH, SOUTH')
+define(N6, `NORTH, NORTH, NORTH, NORTH, NORTH, NORTH')
 PLOW(`RECITE', 604, SOUTH,
-                                            WEST, SOUTH, SOUTH, SOUTH, SOUTH, SOUTH, SOUTH, WEST,
-  NORTH, NORTH, NORTH, NORTH, NORTH, NORTH, WEST, SOUTH, SOUTH, SOUTH, SOUTH, SOUTH, SOUTH, WEST,
-  NORTH, NORTH, NORTH, NORTH, NORTH, NORTH, NORTH,
+      WEST, S6, WEST,
+  N6, WEST, S6, WEST,
+  N6, NORTH,
   EAST, EAST, EAST, EAST, EAST)
