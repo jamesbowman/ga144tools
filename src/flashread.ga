@@ -13,10 +13,8 @@ PLOW(`WIRE', 706, WEST, EAST, EAST)
 \   http://ww1.microchip.com/downloads/en/DeviceDoc/25024C.pdf
 \ EVB001 note: check jumpers J20 and J26
 
-define(_select,   `0xcc')   \ dw-dw
-define(_8o,       `0xc2')   \ dw-dw'
-define(_18ibits,  `0xd9')   \ d-dw
-define(_ibits,    `0xdb')   \ 
+include(romSPI.hdr)
+
     @p a!
       EAST
     @p b!
