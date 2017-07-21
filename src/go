@@ -2,9 +2,15 @@ set -e
 
 # python galois.py ; exit
 PORT=/dev/tty.usbserial-000013FA
-PORT=/dev/ttyUSB2
-python render.py nt.ga
-qiv pictures/nt.ga.png
+PORT=/dev/ttyUSB0
+
+# python asm.py $PORT delayline.ga ; exit
+
+# python flash.py $PORT read flash.dump 8192
+# python render.py flashwrite.ga ; iv pictures/flashwrite.ga.png
+time python flash.py $PORT write image
+python flash.py /dev/ttyUSB0 read flash.dump 93144
+diff image flash.dump
 exit
 
 python memload.py $PORT test
