@@ -1,0 +1,1 @@
+mogrify -background black -gravity center -extent 1280x960 $1

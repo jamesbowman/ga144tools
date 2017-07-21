@@ -1,6 +1,12 @@
+set -e
+
 # python galois.py ; exit
 PORT=/dev/tty.usbserial-000013FA
 PORT=/dev/ttyUSB2
+python render.py nt.ga
+qiv pictures/nt.ga.png
+exit
+
 python memload.py $PORT test
 python asm.py $PORT memread.ga
 exit
