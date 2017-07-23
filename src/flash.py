@@ -32,7 +32,7 @@ class FlashWriter(GA144):
     def __init__(self, port, flashfile):
         GA144.__init__(self)
         self.loadprogram("flashwrite.ga")
-        print "\n".join(self.node['705'].listing)
+        # print "\n".join(self.node['705'].listing)
 
         im = open(flashfile)
         offset = 0

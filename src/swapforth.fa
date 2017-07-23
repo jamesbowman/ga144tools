@@ -1,0 +1,31 @@
+BLOCK one
+  a! jump 0
+: cold
+  @p push
+    20
+: echo
+    pop dup push
+    ! next echo
+  @p !
+    0x947
+: hang
+  jump hang
+
+BLOCK two
+    a! call 0
+: cold
+  @p !
+    22222
+  @p !b ;
+    one
+
+BLOCK three
+  @p !
+    33333
+  @p !p
+    two
+
+BLOCK zero
+
+  @p !p
+    three
