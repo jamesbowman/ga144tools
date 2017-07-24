@@ -2,6 +2,7 @@ import sys
 import ga144
 import array
 import copy
+from subprocess import Popen, PIPE
 
 class Node(ga144.Node):
     def aline(self, l):
@@ -35,8 +36,13 @@ class Node(ga144.Node):
         return r
 
 if __name__ == '__main__':
+    # Pick up fixed symbols from nt.ga node 605
+    g = ga144.GA144()
+    g.loadprogram("nt.ga")
+    symbols = copy.copy(g.node['606'].symbols)
+    # print "\n".join(sorted(symbols))
+
     n = Node('605')
-    symbols = copy.copy(n.symbols)
     s = [None]
 
     c = []
@@ -47,6 +53,7 @@ if __name__ == '__main__':
         symbols[blockname] = len(s)
 
         n.symbols = symbols
+        n.listing = []
         n.load("".join(c[1:]))
 
         print "\n".join(n.listing)
@@ -61,7 +68,10 @@ if __name__ == '__main__':
         ab = array.array('B', [len(pp) - 1] + bytes).tostring()
         return [ab[i:i+64].ljust(64) for i in range(0, len(ab), 64)]
 
-    for l in open(sys.argv[1]):
+    p1 = Popen(["m4", sys.argv[1]], stdout = PIPE)
+    for l in p1.stdout:
+        if l == "\n":
+            continue
         if l.startswith("BLOCK"):
             s += process_block(c)
             c = []

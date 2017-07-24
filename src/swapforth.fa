@@ -1,31 +1,48 @@
+define(GO, `
+  @p call `GO'
+    $1
+')
+define(TRACE, `
+  a @p @p
+    $1
+    EAST
+  a! ! a!
+')
+
 BLOCK one
-  a! jump 0
+  a!
+  TRACE(11111)
+  jump 0
 : cold
-  @p push
-    20
-: echo
-    pop dup push
-    ! next echo
-  @p !
-    0x947
-: hang
-  jump hang
+  a push
+  @p a! !
+    EAST
+  pop a!
+  @+
+  jump cold
 
 BLOCK two
-    a! call 0
+    a! jump 0
 : cold
-  @p !
-    22222
-  @p !b ;
-    one
+  TRACE(22222)
+  GO(one)
+  jump NORTH
 
 BLOCK three
-  @p !
-    33333
-  @p !p
-    two
+  TRACE(33333)
+  @p . +                \ 1+
+    1
+  push @ pop            \ SWAP
+  !
+  GO(two)
 
 BLOCK zero
-
-  @p !p
-    three
+  @p
+    101                 \ 101
+  dup call -!           \ DUP
+  @p call LIT           \ 202
+    202
+  @+ . +                \ +
+  @p call LIT           \ 99999
+    99999
+  GO(three)

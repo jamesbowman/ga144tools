@@ -3,7 +3,7 @@ include(ga144.hdr)
 define(READ_FOREVER, `')
 include(708out.hdr)
 
-PLOW(`WIRE', 606, WEST, EAST, EAST, NORTH)
+PLOW(`WIRE', 607, WEST, EAST, NORTH)
 
 ---------------------------- 705 ----------------------------
 \ See block 1428 for ROM definitions
@@ -23,13 +23,15 @@ include(romSPI.hdr)
 : again
     @p call cmd
       eval(`0x03 << 10')    \ read
-    @
+    @p a! @
+      SOUTH
     call _8o
     call _8o
     call _8o
     drop
     call 8i
-    push
+    push @p a!
+      EAST
 : readloop
     call _18ibits
     ! next readloop
@@ -47,18 +49,87 @@ include(romSPI.hdr)
       7
     jump _ibits
 
+---------------------------- 706 ----------------------------
+WIRE(WEST, SOUTH)
+
 ---------------------------- 605 ----------------------------
-
-    @p @p
-      NORTH
-      EAST
-    a! b!
+  
+    @p a! @p
+        EAST
+        NORTH
+    b!
 : again
-    @p !b
-      0
-: rd
-    \ @b ! jump rd
+    jump EAST
 
-  @p !
-    707
-  jump NORTH
+---------------------------- 606 ----------------------------
+
+    @p b!
+      WEST
+    @p a!
+      STACKTOP
+: again
+    @p call GO
+      0
+    jump NORTH
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+: STACKTOP
+    0x947
+: GO
+    @p !b !b ;
+      @p !b
+: LIT
+    over
+: -!
+    @p a +
+      -1
+    a! ! ;
