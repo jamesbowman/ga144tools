@@ -9,7 +9,35 @@ define(TRACE, `
   a! ! a!
 ')
 
-BLOCK one
+CODE _true
+  call -!
+  @p
+    -1
+  call DORETURN
+
+CODE _emit
+  a over @p
+    EAST
+  a! ! a!
+  @+ call DORETURN
+
+CODE _+
+  @+ . +                \ +
+  call DORETURN
+
+CODE _drop
+  @+ call DORETURN
+
+CODE _dup
+  dup call -!
+  call DORETURN
+
+CODE _over
+  @ over
+  call -!
+  call DORETURN
+
+CODE one
   a!
   TRACE(11111)
   jump 0
@@ -21,28 +49,44 @@ BLOCK one
   @+
   jump cold
 
-BLOCK two
+CODE two
     a! jump 0
 : cold
-  TRACE(22222)
+  \ TRACE(22222)
   GO(one)
   jump NORTH
 
-BLOCK three
-  TRACE(33333)
-  @p . +                \ 1+
-    1
-  push @ pop            \ SWAP
-  !
+CODE three.2
   GO(two)
 
-BLOCK zero
+CODE three.1
+  @p call TO_R
+    three.2
+  GO(_emit)
+
+CODE three
+  \ TRACE(33333)
+  \ @p . +                \ 1+
+  \   1
+  \ push @ pop            \ SWAP
+  \ !
+  @p call TO_R
+    three.1
+  GO(_emit)
+
+CODE zero.1
+  @p call LIT           \ 303
+    303
+  GO(three)
+
+:: _klak
+  100 200 300 400 500 + ;
+
+CODE boot
   @p
     101                 \ 101
   dup call -!           \ DUP
-  @p call LIT           \ 202
-    202
-  @+ . +                \ +
-  @p call LIT           \ 99999
-    99999
-  GO(three)
+  dup call -!           \ DUP
+  @p call TO_R
+    zero.1
+  GO(_klak)

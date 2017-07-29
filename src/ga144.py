@@ -143,9 +143,12 @@ class Node():
     def pass1_term(self, n):
         if n in self.symbols:
             return self.symbols[n]
+        if '.' in n:
+            # handle a symbol in another node e.g. "605.emit"
+            (n, sym) = n.split('.')
+            return self.chip.node[n].symbols[sym]
         else:
             return eval(n)
-            return int(n, 0)
 
     def bad_dest_0(self, pc, dest, dm):
         return False
@@ -334,6 +337,9 @@ class GA144:
             for c in range(1,18):
                 id = "%d%02d" % (r, c)
                 self.node[id].w = self.node["%d%02d" % (r, c - 1)]
+
+        for n in self.node.values():
+            n.chip = self
 
     def bootstream(self):
         r = []

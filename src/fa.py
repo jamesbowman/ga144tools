@@ -35,50 +35,103 @@ class Node(ga144.Node):
             r += self.prefix
         return r
 
+class Program:
+    def __init__(self):
+        self.s = [None]
+        self.org = 1
+
+    def append(self, frag):
+        self.s.append(frag)
+        self.org += 1
+
+    def resolve(self, (f, i)):
+        # Resolve a forward reference
+        print 'resolved', (f,i), 'to', self.org
+        self.s[f][i] = self.org
+
 if __name__ == '__main__':
     # Pick up fixed symbols from nt.ga node 605
     g = ga144.GA144()
     g.loadprogram("nt.ga")
-    symbols = copy.copy(g.node['606'].symbols)
+
+    # Load R's symbols, and X's symbols
+    # for use in the fragment source
+    symbols = copy.copy(g.node['605'].symbols)
+    symbols.update(g.node['606'].symbols)
     # print "\n".join(sorted(symbols))
 
     n = Node('605')
-    s = [None]
+    prg = Program()
+
+    listing = open("lst", "w")
+    def lst(s):
+        listing.write(s + "\n")
 
     c = []
-    def process_block(b):
-        if not b:
-            return []
-        blockname = c[0].split()[-1]
-        symbols[blockname] = len(s)
-
+    def process_code(c):
         n.symbols = symbols
         n.listing = []
-        n.load("".join(c[1:]))
+        n.load("".join(c))
 
-        print "\n".join(n.listing)
-        print n.prefix
+        lst("(fragment %d)" % prg.org)
+        lst("\n".join(n.listing[1:]))
         pp = n.pump(None)
-        print 'pump'
-        print "\n".join(["%05x" % p for p in pp])
-        bits = [1 & (pp[i / 18] >> (17 - (i % 18))) for i in range(18 * len(pp))]
-        sbits = [x << (7 - (i % 8)) for i,x in enumerate(bits)]
-        bytes = [sum(sbits[i:i+8]) for i in range(0, len(sbits), 8)]
-        print len(bytes), bytes
-        ab = array.array('B', [len(pp) - 1] + bytes).tostring()
-        return [ab[i:i+64].ljust(64) for i in range(0, len(ab), 64)]
+        bytesize = ((8 + 18 * len(pp)) / 8)
+        lst("%d bytes\n" % bytesize)
+        return pp
+
+    def process_forth(src):
+        cs = []
+        c = []
+        for w in " ".join(src).split():
+            print w
+            if cs:
+                prg.resolve(cs.pop())
+            if w[0] in "0123456789":
+                c.extend(["@p call LIT", w])
+            elif w == ";":
+                c.extend(["call DORETURN"])
+                prg.append(process_code([l+"\n" for l in c]))
+                c = []
+            else:
+                cs.append((prg.org, len(c) + 1))
+                c.extend([
+                  "@p call TO_R",
+                  "0x3ffff",
+                  "@p call GO",
+                  "_" + w,
+                  ])
+                prg.append(process_code([l+"\n" for l in c]))
+                c = []
+        if c:
+            prg.append(process_code([l+"\n" for l in c]))
+        assert cs == []
 
     p1 = Popen(["m4", sys.argv[1]], stdout = PIPE)
     for l in p1.stdout:
         if l == "\n":
             continue
-        if l.startswith("BLOCK"):
-            s += process_block(c)
+        if (l.startswith("CODE") or l.startswith("::")) and c:
+            (kind, blockname) = c[0].split()
+            symbols[blockname] = prg.org
+            if kind == "CODE":
+                lst("CODE %s" % blockname)
+                prg.append(process_code(c[1:]))
+            elif kind == "::":
+                lst(":: %s" % blockname)
+                process_forth(c[1:])
             c = []
         c.append(l)
-    s += process_block(c)
+    prg.s[0] = process_code(c[1:])
 
-    s[0] = s[-1]
+    def bytecode(pp):
+        bits = [1 & (pp[i / 18] >> (17 - (i % 18))) for i in range(18 * len(pp))]
+        sbits = [x << (7 - (i % 8)) for i,x in enumerate(bits)]
+        bytes = [sum(sbits[i:i+8]) for i in range(0, len(sbits), 8)]
+        ab = array.array('B', [len(pp) - 1] + bytes).tostring()
+        return ab.ljust((len(ab) + 63) & ~63)
 
+    s = [bytecode(pp) for pp in prg.s]
     s = "".join(s).ljust(4096, chr(0xff))
+
     open("image", "w").write(s)
