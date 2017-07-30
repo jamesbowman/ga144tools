@@ -42,6 +42,15 @@ You should see something like this:
     0x0000d  13
     0x00015  21
     
+There is a utility to read and write directly to the onboard flash.
+To read the first 128K into `filename.bin`:
+
+    ./flash.py $P read filename.bin 131072
+
+To write `image` to flash:
+
+    ./flash.py $P write image
+
 Instruction set notes:
 
   https://mschuldt.github.io/www.colorforth.com/inst.htm
