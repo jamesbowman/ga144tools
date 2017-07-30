@@ -1,6 +1,7 @@
 0
 bin
 lst
+log
 unused
 *.o
 a.out
