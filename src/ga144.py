@@ -405,7 +405,7 @@ class GA144:
         self.order = []
         code = {}
         c = []
-        p1 = Popen(["m4", sourcefile], stdout = PIPE, shell=True)
+        p1 = Popen("m4 " + sourcefile, stdout = PIPE, shell=True)
         log = open("log", "w")
         for l in p1.stdout:
         # for l in open(sourcefile):
