@@ -38,17 +38,26 @@ class Node(ga144.Node):
 
 class Program:
     def __init__(self):
-        self.s = [None]
+        self.s = {}
         self.org = 1
 
     def append(self, frag):
-        self.s.append(frag)
-        self.org += 1
+        self.s[self.org] = frag
+        bytesize = ((8 + 18 * len(frag) + 7) / 8)
+        self.org += (bytesize + 63) / 64
 
     def resolve(self, (f, i)):
         # Resolve a forward reference
         # print 'resolved', (f,i), 'to', self.org
         self.s[f][i] = self.org
+
+def cleanup(s):
+    for l in s:
+        l = l.strip()
+        if '\\' in l:
+            l = l[:l.index('\\')]
+        if l:
+            yield l
 
 if __name__ == '__main__':
     # Pick up fixed symbols from nt.ga node 605
@@ -72,23 +81,50 @@ if __name__ == '__main__':
     def process_code(c):
         n.symbols = symbols
         n.listing = []
-        n.load("".join(c))
+        n.load("\n".join(c))
 
         lst("(fragment %d)" % prg.org)
         lst("\n".join(n.listing[1:]))
         pp = n.pump(None)
-        bytesize = ((8 + 18 * len(pp)) / 8)
+        bytesize = ((8 + 18 * len(pp) + 7) / 8)
         lst("%d bytes\n" % bytesize)
         return pp
 
-    def process_forth(src):
-        cs = []
-        c = []
-        def newblock(c):
-            if c:
-                prg.append(process_code([l+"\n" for l in c]))
-            return []
-        for w in " ".join(src).split():
+    p1 = Popen(["m4", sys.argv[1]], stdout = PIPE)
+
+    def code(c):
+        if c:
+            (kind, blockname) = c[0].split()
+            assert kind == "CODE"
+            symbols["_" + blockname] = prg.org
+            lst("CODE _%s" % blockname)
+            prg.append(process_code(c[1:]))
+
+    for l in cleanup(p1.stdout):
+        if '%FORTHLIKE%' in l:
+            break
+        if l.startswith("CODE") and c:
+            code(c)
+            c = []
+        c.append(l)
+    code(c)
+
+    # From here on code uses the forth-like syntax
+    cs = []
+    c = []
+    def newblock(c):
+        if c:
+            prg.append(process_code(c))
+        return []
+    for l in cleanup(p1.stdout):
+        ww = l.split()
+        if ww[0] == ":":
+            assert cs == []
+            c = newblock(c)
+            lst(": %s" % ww[1])
+            symbols["_" + ww[1]] = prg.org
+            continue
+        for w in ww:
             if re.match("^-?[0-9](x[[0-9a-f]+|[0-9]*)$", w):
                 c.extend(["@p call LIT", w])
             elif w == ";":
@@ -111,27 +147,9 @@ if __name__ == '__main__':
                 c = newblock(c)
                 if cs:
                     prg.resolve(cs.pop())
-        if c:
-            c = newblock(c)
-        assert cs == []
 
-    p1 = Popen(["m4", sys.argv[1]], stdout = PIPE)
-    for l in p1.stdout:
-        if l == "\n":
-            continue
-        if (l.startswith("CODE") or l.startswith("::")) and c:
-            (kind, blockname) = c[0].split()
-            symbols[blockname] = prg.org
-            if kind == "CODE":
-                lst("CODE %s" % blockname)
-                prg.append(process_code(c[1:]))
-            elif kind == "::":
-                lst(":: %s" % blockname)
-                process_forth(c[1:])
-            c = []
-        c.append(l)
-    print 'cold at', symbols['_cold']
-    prg.s[0] = process_code(c[1:])
+    # Put a copy of the 'boot' fragment at zero
+    prg.s[0] = prg.s[symbols['_boot']]
 
     def bytecode(pp):
         bits = [1 & (pp[i / 18] >> (17 - (i % 18))) for i in range(18 * len(pp))]
@@ -140,7 +158,8 @@ if __name__ == '__main__':
         ab = array.array('B', [len(pp) - 1] + bytes).tostring()
         return ab.ljust((len(ab) + 63) & ~63, chr(0xff))
 
-    s = [bytecode(pp) for pp in prg.s]
-    s = "".join(s).ljust(4096, chr(0xff))
+    s = [bytecode(prg.s[f]) for f in sorted(prg.s)]
+    padsize = (len(s) + 4095) & ~4095
+    s = "".join(s).ljust(padsize, chr(0xff))
 
     open("image", "w").write(s)

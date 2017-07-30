@@ -1,45 +1,67 @@
-define(GO, `
-  @p call `GO'
-    $1
-')
-define(TRACE, `
-  a @p @p
-    $1
-    EAST
-  a! ! a!
-')
+\ The definition starts with "CODE" and the word name
+\
+\ Every definition should call DORETURN - this
+\ should appear early for maximum overlap.
+\
+\ Definitions the only use port-execution are
+\ shortest - they have only a prefix.
+\
+\ Definitions that need labels (i.e. "if" and
+\ "next" targets) will actually be loaded into node
+\ RAM.  The load pump leaves A on the stack, so in
+\ this case the prefix must start with "a!". The
+\ jump/call from the prefix into RAM is explicit,
+\ e.g. "jump main". So a common pattern is:
+\
+\     CODE fancyword
+\       a! call DORETURN
+\       call main
+\
+\     : main
+\       ...
+\       ;
+\
+\ Permanent subroutines (see nt.ga for source):
+\   -!        push T onto the D stack
+\   LIT       push literal, usage "@p call LIT"
+\   GO        tell R to request next fragment T
+\   DORETURN  tell R to request next fragment from R stack
+\   TO_R      push T on R
+\
+\ Do this to run:
+\
+\   python fa.py swapforth.fa           # assemble this file into "image", listing "lst"
+\   python flash.py $PORT write image   # write "image" to flash
+\   python asm.py $PORT nt.ga           # bootstrap, dump results of running "boot" word
+\
 
-dnl \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-dnl \\ CORE words implemented in GA144 code
-dnl \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-
-CODE _true
+CODE true
   call DORETURN
   call -!
   @p
     -1
 
-CODE _false
+CODE false
   call DORETURN
   call -!
   dup or
 
-CODE _1+
+CODE 1+
   call DORETURN
   @p . +
     1
 
-CODE _1-
+CODE 1-
   call DORETURN
   @p . +
     -1
 
-CODE _negate
+CODE negate
   call DORETURN
   - @p . +
     1
 
-CODE _abs
+CODE abs
   call DORETURN
   dup @p push
     17
@@ -47,51 +69,51 @@ CODE _abs
   over over . +     \ x m x+m
   or                \ x (x+m)^m
 
-CODE _invert
+CODE invert
   - call DORETURN
 
-CODE _emit
+CODE emit
   call DORETURN
   a over @p
     EAST
   a! ! a!
   @+
 
-CODE _+
+CODE +
   call DORETURN
   @+ . +
 
-CODE _-
+CODE -
   call DORETURN
   @+ - . +
   -
 
-CODE _and
+CODE and
   call DORETURN
   @+ and
 
-CODE _or
+CODE or
   call DORETURN
   @+ over -
   and or
 
-CODE _xor
+CODE xor
   call DORETURN
   @+ or
 
-CODE _lshift
+CODE lshift
   a! call DORETURN
   push @+
-  next 0
+  next lshift
 : lshift
   2* unext
   jump NORTH
 
-CODE _rshift
+CODE rshift
   a! call DORETURN
-  call NORTH
+  call NORTH          \ so body code can use ';'
   push @+
-  next 0
+  next main
 : main
   -if pos
   2/ @p and
@@ -101,7 +123,7 @@ CODE _rshift
 : pos
   2/ unext ;
 
-CODE _*
+CODE *
   @+ call DORETURN
   a push a!
   @p @p push
@@ -110,7 +132,7 @@ CODE _*
   +* unext a
   pop a!
 
-CODE _um*
+CODE um*
   a! call DORETURN
   @ a push
   call main
@@ -129,46 +151,46 @@ CODE _um*
   drop drop pop
   a ;
 
-CODE _execute
+CODE execute
   @+ over
-  call `GO'
+  call GO
 
-CODE _rot
+CODE rot
   call DORETURN
   a push
   @ over !+
   @ over !
   pop a!
 
-CODE _drop
+CODE drop
   @+ call DORETURN
 
-CODE _dup
+CODE dup
   dup call -!
   call DORETURN
 
-CODE _over
+CODE over
   @ over
   call -!
   call DORETURN
 
-CODE _swap
+CODE swap
   @ over !
   call DORETURN
 
-CODE _snap
-  a!  jump 0
-: cold
+CODE snap
+  a!  jump main
+: main
   a push
   @p a! !
     EAST
   pop a!
   @+
-  jump cold
+  jump main
 
-CODE _0<>
+CODE 0<>
   a! call DORETURN
-  call 0
+  call main
 : main
   dup dup or
   over if is0
@@ -176,9 +198,9 @@ CODE _0<>
 : is0
   drop ;
 
-CODE _0=
+CODE 0=
   a! call DORETURN
-  call 0
+  call main
 : main
   dup dup or
   over if is0
@@ -186,15 +208,15 @@ CODE _0=
 : is0
   drop - ;
 
-CODE _0<
+CODE 0<
   call DORETURN
   @p push
     17
   2/ unext
 
-CODE _<>
+CODE <>
   a! call DORETURN
-  call 0
+  call main
 : main
   dup dup or
   over @+ or
@@ -203,9 +225,9 @@ CODE _<>
 : is0
   drop ;
 
-CODE _=
+CODE =
   a! call DORETURN
-  call 0
+  call main
 : main
   dup dup or
   over @+ or
@@ -214,31 +236,25 @@ CODE _=
 : is0
   drop - ;
 
-dnl \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-dnl \\ CORE words implemented in GA144 code
-dnl \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+%FORTHLIKE%
 
-:: _2dup
+\ ====================================================
+\ CORE words
+\ ====================================================
+
+: 2dup
   over over ;
 
-:: _0>
+: 0>
   dup 0< invert swap 0<> and ;
 
-:: _-rot
+: -rot
   rot rot ;
 
-dnl \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-dnl \\ testing
-dnl \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+\ ====================================================
+\ testing
+\ ====================================================
 
-:: _cold
-  100 200 300 75 -
-  5 6 um*
-  157287 145635 um*
-  snap
-  begin again ;
-
-CODE boot
-  @p
-    77777
-  GO(_cold)
+: boot
+  100 200 300 1 rshift
+  snap ;

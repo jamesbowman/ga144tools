@@ -133,6 +133,8 @@ WIRE(WEST, SOUTH)
       WEST
     @p a!
       STACKTOP
+    @p
+      0x947
 : again
     @p call GO
       0
@@ -179,8 +181,16 @@ WIRE(WEST, SOUTH)
     .
     .
     .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
 : STACKTOP
-    0x947
 : TO_R
     @p !b !b ;
       @p call 605.RPUSH
