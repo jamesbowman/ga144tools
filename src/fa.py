@@ -2,6 +2,7 @@ import sys
 import ga144
 import array
 import copy
+import re
 from subprocess import Popen, PIPE
 
 class Node(ga144.Node):
@@ -46,7 +47,7 @@ class Program:
 
     def resolve(self, (f, i)):
         # Resolve a forward reference
-        print 'resolved', (f,i), 'to', self.org
+        # print 'resolved', (f,i), 'to', self.org
         self.s[f][i] = self.org
 
 if __name__ == '__main__':
@@ -83,16 +84,22 @@ if __name__ == '__main__':
     def process_forth(src):
         cs = []
         c = []
+        def newblock(c):
+            if c:
+                prg.append(process_code([l+"\n" for l in c]))
+            return []
         for w in " ".join(src).split():
-            print w
-            if cs:
-                prg.resolve(cs.pop())
-            if w[0] in "0123456789":
+            if re.match("^-?[0-9](x[[0-9a-f]+|[0-9]*)$", w):
                 c.extend(["@p call LIT", w])
             elif w == ";":
                 c.extend(["call DORETURN"])
-                prg.append(process_code([l+"\n" for l in c]))
-                c = []
+                c = newblock(c)
+            elif w == "begin":
+                c = newblock(c)
+                cs.append(prg.org)
+            elif w == "again":
+                c.extend(["@p call GO", str(cs.pop())])
+                c = newblock(c)
             else:
                 cs.append((prg.org, len(c) + 1))
                 c.extend([
@@ -101,10 +108,11 @@ if __name__ == '__main__':
                   "@p call GO",
                   "_" + w,
                   ])
-                prg.append(process_code([l+"\n" for l in c]))
-                c = []
+                c = newblock(c)
+                if cs:
+                    prg.resolve(cs.pop())
         if c:
-            prg.append(process_code([l+"\n" for l in c]))
+            c = newblock(c)
         assert cs == []
 
     p1 = Popen(["m4", sys.argv[1]], stdout = PIPE)
@@ -122,6 +130,7 @@ if __name__ == '__main__':
                 process_forth(c[1:])
             c = []
         c.append(l)
+    print 'cold at', symbols['_cold']
     prg.s[0] = process_code(c[1:])
 
     def bytecode(pp):
@@ -129,7 +138,7 @@ if __name__ == '__main__':
         sbits = [x << (7 - (i % 8)) for i,x in enumerate(bits)]
         bytes = [sum(sbits[i:i+8]) for i in range(0, len(sbits), 8)]
         ab = array.array('B', [len(pp) - 1] + bytes).tostring()
-        return ab.ljust((len(ab) + 63) & ~63)
+        return ab.ljust((len(ab) + 63) & ~63, chr(0xff))
 
     s = [bytecode(pp) for pp in prg.s]
     s = "".join(s).ljust(4096, chr(0xff))

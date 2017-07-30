@@ -9,21 +9,136 @@ define(TRACE, `
   a! ! a!
 ')
 
+dnl \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+dnl \\ CORE words implemented in GA144 code
+dnl \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
 CODE _true
+  call DORETURN
   call -!
   @p
     -1
+
+CODE _false
   call DORETURN
+  call -!
+  dup or
+
+CODE _1+
+  call DORETURN
+  @p . +
+    1
+
+CODE _1-
+  call DORETURN
+  @p . +
+    -1
+
+CODE _negate
+  call DORETURN
+  - @p . +
+    1
+
+CODE _abs
+  call DORETURN
+  dup @p push
+    17
+  2/ unext          \ x m
+  over over . +     \ x m x+m
+  or                \ x (x+m)^m
+
+CODE _invert
+  - call DORETURN
 
 CODE _emit
+  call DORETURN
   a over @p
     EAST
   a! ! a!
-  @+ call DORETURN
+  @+
 
 CODE _+
-  @+ . +                \ +
   call DORETURN
+  @+ . +
+
+CODE _-
+  call DORETURN
+  @+ - . +
+  -
+
+CODE _and
+  call DORETURN
+  @+ and
+
+CODE _or
+  call DORETURN
+  @+ over -
+  and or
+
+CODE _xor
+  call DORETURN
+  @+ or
+
+CODE _lshift
+  a! call DORETURN
+  push @+
+  next 0
+: lshift
+  2* unext
+  jump NORTH
+
+CODE _rshift
+  a! call DORETURN
+  call NORTH
+  push @+
+  next 0
+: main
+  -if pos
+  2/ @p and
+    0x1ffff
+  next pos
+  ;
+: pos
+  2/ unext ;
+
+CODE _*
+  @+ call DORETURN
+  a push a!
+  @p @p push
+    0
+    17
+  +* unext a
+  pop a!
+
+CODE _um*
+  a! call DORETURN
+  @ a push
+  call main
+  pop a! !
+
+: main
+  over a! @p @p
+    0
+    8
+  push
+  +* . +* unext 
+  push -if L1
+  drop pop . +
+  a ;
+: L1
+  drop drop pop
+  a ;
+
+CODE _execute
+  @+ over
+  call `GO'
+
+CODE _rot
+  call DORETURN
+  a push
+  @ over !+
+  @ over !
+  pop a!
 
 CODE _drop
   @+ call DORETURN
@@ -37,10 +152,12 @@ CODE _over
   call -!
   call DORETURN
 
-CODE one
-  a!
-  TRACE(11111)
-  jump 0
+CODE _swap
+  @ over !
+  call DORETURN
+
+CODE _snap
+  a!  jump 0
 : cold
   a push
   @p a! !
@@ -49,44 +166,79 @@ CODE one
   @+
   jump cold
 
-CODE two
-    a! jump 0
-: cold
-  \ TRACE(22222)
-  GO(one)
-  jump NORTH
+CODE _0<>
+  a! call DORETURN
+  call 0
+: main
+  dup dup or
+  over if is0
+  drop - ;
+: is0
+  drop ;
 
-CODE three.2
-  GO(two)
+CODE _0=
+  a! call DORETURN
+  call 0
+: main
+  dup dup or
+  over if is0
+  drop ;
+: is0
+  drop - ;
 
-CODE three.1
-  @p call TO_R
-    three.2
-  GO(_emit)
+CODE _0<
+  call DORETURN
+  @p push
+    17
+  2/ unext
 
-CODE three
-  \ TRACE(33333)
-  \ @p . +                \ 1+
-  \   1
-  \ push @ pop            \ SWAP
-  \ !
-  @p call TO_R
-    three.1
-  GO(_emit)
+CODE _<>
+  a! call DORETURN
+  call 0
+: main
+  dup dup or
+  over @+ or
+  if is0
+  drop - ;
+: is0
+  drop ;
 
-CODE zero.1
-  @p call LIT           \ 303
-    303
-  GO(three)
+CODE _=
+  a! call DORETURN
+  call 0
+: main
+  dup dup or
+  over @+ or
+  if is0
+  drop ;
+: is0
+  drop - ;
 
-:: _klak
-  100 200 300 400 500 + ;
+dnl \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+dnl \\ CORE words implemented in GA144 code
+dnl \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+:: _2dup
+  over over ;
+
+:: _0>
+  dup 0< invert swap 0<> and ;
+
+:: _-rot
+  rot rot ;
+
+dnl \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+dnl \\ testing
+dnl \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+:: _cold
+  100 200 300 75 -
+  5 6 um*
+  157287 145635 um*
+  snap
+  begin again ;
 
 CODE boot
   @p
-    101                 \ 101
-  dup call -!           \ DUP
-  dup call -!           \ DUP
-  @p call TO_R
-    zero.1
-  GO(_klak)
+    77777
+  GO(_cold)
