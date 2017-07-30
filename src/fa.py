@@ -162,4 +162,4 @@ if __name__ == '__main__':
     padsize = (len(s) + 4095) & ~4095
     s = "".join(s).ljust(padsize, chr(0xff))
 
-    open("image", "w").write(s)
+    open("image", "wb").write(s)
