@@ -64,6 +64,22 @@ class Node():
         'rd-u' : 0x185,
         'rdl-' : 0x1b5,
         'rdlu' : 0x1a5,
+        #ROM
+        'warm'     : 0xA9,
+        'relay'    : 0xA1,
+        '*.17'     : 0xB0,
+        '*.'       : 0xB7,
+        'triangle' : 0xCE,
+        'clc'      : 0x2D3,
+        '--u/mod'  : 0x2D5,
+        '-u/mod'   : 0x2D6,
+        'interp'   : 0xC4,
+        'taps'     : 0xBC,
+        'poly'     : 0xAA,
+        'lsh'      : 0xD9,
+        'rsh'      : 0xDB,
+        '-dac'     : 0xBC,
+        'boot'     : 0xAE,
     }
 
     def __init__(self, name):
@@ -389,7 +405,7 @@ class GA144:
         self.order = []
         code = {}
         c = []
-        p1 = Popen(["m4", sourcefile], stdout = PIPE)
+        p1 = Popen(["m4", sourcefile], stdout = PIPE, shell=True)
         log = open("log", "w")
         for l in p1.stdout:
         # for l in open(sourcefile):
