@@ -1,6 +1,6 @@
 import sys
 from ga144 import GA144
-import draw
+#import draw
 
 if __name__ == '__main__':
     g = GA144()
