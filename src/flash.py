@@ -34,7 +34,7 @@ class FlashWriter(GA144):
         self.loadprogram("flashwrite.ga")
         # print "\n".join(self.node['705'].listing)
 
-        im = open(flashfile)
+        im = open(flashfile, "rb")
         offset = 0
         ser = serial.Serial(port, 460800)
         while True:
