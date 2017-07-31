@@ -53,13 +53,14 @@ include(romSPI.hdr)
 WIRE(WEST, SOUTH)
 
 ---------------------------- 605 ----------------------------
+\ R stk
   
     @p b!
-      NORTH
+      NORTH         \ to F
     @p a!
       RSTACKTOP
 : main
-    jump EAST
+    jump EAST       \ port exe from X
     .
     .
     .
@@ -128,9 +129,10 @@ WIRE(WEST, SOUTH)
     a! ! ;
 
 ---------------------------- 606 ----------------------------
+\ D stk and execute
 
     @p b!
-      WEST
+      WEST          \ R stk
     @p a!
       STACKTOP
     @p
@@ -138,26 +140,7 @@ WIRE(WEST, SOUTH)
 : again
     @p call GO
       0
-    jump NORTH
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
+    jump NORTH      \ port exe from D
     .
     .
     .

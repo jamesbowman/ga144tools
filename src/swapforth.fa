@@ -179,7 +179,7 @@ CODE swap
   call DORETURN
 
 CODE snap
-  a!  jump main
+  a! jump main
 : main
   a push
   @p a! !
@@ -236,6 +236,20 @@ CODE =
 : is0
   drop - ;
 
+CODE depth
+  call -!
+  a call DORETURN
+  - @p . +
+    35   
+
+CODE pick
+  call DORETURN
+  a dup push +
+  a! @ pop
+  a!   
+
+      
+
 %FORTHLIKE%
 
 \ ====================================================
@@ -256,5 +270,5 @@ CODE =
 \ ====================================================
 
 : boot
-  100 200 300 1 rshift
+  100 200 300 400 2 pick
   snap ;
