@@ -248,7 +248,61 @@ CODE pick
   a! @ pop
   a!   
 
-      
+\ ====================================================
+\ external RAM
+\ ====================================================
+
+CODE @
+  a call DORETURN
+  push @p a! @p
+    SOUTH
+    call 506.@
+  ! ! @
+  pop a!
+
+CODE !
+  @+ call DORETURN
+  a push @p
+    SOUTH
+  a! over @p
+    call 506.!
+  ! ! !
+  pop a! @+
+
+CODE c@
+  a call DORETURN
+  push @p a! @p
+    SOUTH
+    call 506.c@
+  ! ! @
+  pop a!
+
+\ CODE c@
+\   push call DORETURN
+\   dup @p a! @p
+\     SOUTH
+\     @p a! @ !p
+\   ! 2/ !
+\   @ over -
+\   dup 2/ 2*
+\   or if hibyte
+\   drop @p and
+\     255
+\   pop a!
+\ 
+\ : hibyte
+\   over @p push
+\     7
+\   2/ unext over
+\   jump NORTH
+\ 
+\ CODE c!
+\   push call DORETURN
+\   dup @p a! @p
+\     SOUTH
+\     @p a! @ !p
+\   ! 2/ ! @
+\   pop a!
 
 %FORTHLIKE%
 
@@ -269,6 +323,25 @@ CODE pick
 \ testing
 \ ====================================================
 
+: memtest
+  100 200
+
+  \ 0xcc88 8 !
+  \ 0xbb66 6 !
+  \ 0xdd44 4 !
+  \ 0xefbe 2 !
+  \ 0xadde 0 !
+
+  0x424a 258 !
+
+  130 @
+  130 c@
+  131 c@
+
+  258 c@
+  259 c@
+;
+
 : boot
-  100 200 300 400 2 pick
+  100 200 300 400 depth
   snap ;
