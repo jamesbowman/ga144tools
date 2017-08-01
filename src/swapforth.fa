@@ -240,7 +240,7 @@ CODE depth
   call -!
   a call DORETURN
   - @p . +
-    35   
+    STACKTOP
 
 CODE pick
   call DORETURN
@@ -277,33 +277,6 @@ CODE c@
   ! ! @
   pop a!
 
-\ CODE c@
-\   push call DORETURN
-\   dup @p a! @p
-\     SOUTH
-\     @p a! @ !p
-\   ! 2/ !
-\   @ over -
-\   dup 2/ 2*
-\   or if hibyte
-\   drop @p and
-\     255
-\   pop a!
-\ 
-\ : hibyte
-\   over @p push
-\     7
-\   2/ unext over
-\   jump NORTH
-\ 
-\ CODE c!
-\   push call DORETURN
-\   dup @p a! @p
-\     SOUTH
-\     @p a! @ !p
-\   ! 2/ ! @
-\   pop a!
-
 %FORTHLIKE%
 
 \ ====================================================
@@ -324,24 +297,16 @@ CODE c@
 \ ====================================================
 
 : memtest
-  100 200
 
-  \ 0xcc88 8 !
-  \ 0xbb66 6 !
-  \ 0xdd44 4 !
-  \ 0xefbe 2 !
-  \ 0xadde 0 !
-
-  0x424a 258 !
-
-  130 @
-  130 c@
-  131 c@
-
-  258 c@
-  259 c@
+  0x4142 256 !
+  0x4443 0 !
+  1 c@
+  0 c@
+  256 c@
+  257 c@
 ;
 
 : boot
   100 200 300 400 depth
+  \ memtest
   snap ;

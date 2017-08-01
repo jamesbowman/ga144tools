@@ -71,6 +71,7 @@ if __name__ == '__main__':
     # print "\n".join(sorted(symbols))
 
     n = Node('605')
+    n.chip = g
     prg = Program()
 
     listing = open("lst", "w")

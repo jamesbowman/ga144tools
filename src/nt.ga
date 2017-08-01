@@ -49,6 +49,74 @@ include(romSPI.hdr)
       7
     jump _ibits
 
+---------------------------- 506 ----------------------------
+
+    @p b!
+      NORTH
+: main
+    jump NORTH
+: addr                      \ ( -- o )
+                            \ fetch byte address 0-383
+                            \ set A to bank
+                            \ o to offset 0-63
+    2/ dup 2/
+    2/ 2/ 2/
+    2/ 2/ call tab
+      WEST                  \ 3 bank nodes
+      SOUTH
+      EAST
+: tab
+    pop + a!
+    @ a! @p
+      63
+    and ;
+
+: @
+    @b call addr
+    @p ! !
+      @p a! @ !p
+    @ !b ;
+
+: !
+    @b call addr
+    @p ! ! @p
+      @p a! . .
+      @p ! . .
+    ! @b ! ;
+
+: c@
+  @b dup dup
+  call addr
+  @p ! !
+    @p a! @ !p
+  2/ 2* or                \ low bit of addr
+  2* 2* 2*                \ 0 or 8
+  push @ next hibyte
+: lo8
+  @p and !b ;
+    255
+: hibyte
+  2/ unext jump lo8
+
+\ The three banks for the RAM
+---------------------------- 505 ----------------------------
+: cold
+    jump EAST
+    50502
+    50504
+
+---------------------------- 507 ----------------------------
+: cold
+    jump WEST
+    50702
+    50704
+
+---------------------------- 406 ----------------------------
+: cold
+    jump NORTH
+    40602
+    40604
+
 ---------------------------- 706 ----------------------------
 WIRE(WEST, SOUTH)
 
@@ -189,3 +257,4 @@ WIRE(WEST, SOUTH)
     @p a +
       -1
     a! ! ;
+
