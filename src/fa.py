@@ -48,7 +48,7 @@ class Program:
 
     def resolve(self, (f, i)):
         # Resolve a forward reference
-        # print 'resolved', (f,i), 'to', self.org
+        print 'resolved', (f,i), 'to', self.org
         self.s[f][i] = self.org
 
 def cleanup(s):
@@ -132,11 +132,45 @@ if __name__ == '__main__':
                 c.extend(["call DORETURN"])
                 c = newblock(c)
             elif w == "begin":
+                cs.append((prg.org, len(c) + 1))
+                c.extend(["@p call GO", "0x3ffff"])
                 c = newblock(c)
+                prg.resolve(cs.pop())
                 cs.append(prg.org)
             elif w == "again":
                 c.extend(["@p call GO", str(cs.pop())])
                 c = newblock(c)
+            elif w == "if":
+                cs.append((prg.org, len(c) + 2))
+                cs.append((prg.org, len(c) + 1))
+                c.extend([
+                  "push @p @p",
+                  "0x3ffff",
+                  "0x3ffff",
+                  "pop call IFELSE",
+                  "@+",
+                  ])
+                c = newblock(c)
+                prg.resolve(cs.pop())
+            elif w == "then":
+                cs.append((prg.org, len(c) + 1))
+                c.extend(["@p call GO", "0x3ffff"])
+                c = newblock(c)
+                # CS: then then 
+                prg.resolve(cs.pop())
+                prg.resolve(cs.pop())
+            elif w == "until":
+                begin = str(cs.pop())
+                cs.append((prg.org, len(c) + 1))
+                c.extend([
+                  "push @p @p",
+                  "0x3ffff",
+                  begin,
+                  "pop call IFELSE",
+                  "@+",
+                  ])
+                c = newblock(c)
+                prg.resolve(cs.pop())
             else:
                 cs.append((prg.org, len(c) + 1))
                 c.extend([

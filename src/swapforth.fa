@@ -277,6 +277,12 @@ CODE c@
   ! ! @
   pop a!
 
+CODE 1-dup
+  call DORETURN
+  @p . +
+    -1
+  dup call -!
+
 %FORTHLIKE%
 
 \ ====================================================
@@ -291,6 +297,7 @@ CODE c@
 
 : -rot
   rot rot ;
+
 
 \ ====================================================
 \ testing
@@ -307,6 +314,12 @@ CODE c@
 ;
 
 : boot
-  100 200 300 400 depth
+  100 200 300 
+  0xaaaa emit
+  10000
+  begin
+    1- dup 0=
+  until
+  0xbbbb emit
   \ memtest
   snap ;

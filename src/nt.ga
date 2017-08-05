@@ -245,9 +245,20 @@ WIRE(WEST, SOUTH)
 : TO_R
     @p !b !b ;
       @p call 605.RPUSH
+: zzz
+  dup dup or
+  over if aaa
+  drop ;
+: aaa
+  drop - ;
 : DORETURN
     @p !b ;
       call 605.RETURN
+: IFELSE          \ a b f : if (f) a else b
+    if TWOD
+    drop
+: TWOD
+    drop
 : GO
     @p !b !b ;
       @p !b
@@ -257,4 +268,3 @@ WIRE(WEST, SOUTH)
     @p a +
       -1
     a! ! ;
-
