@@ -56,6 +56,8 @@ def cleanup(s):
         l = l.strip()
         if '\\' in l:
             l = l[:l.index('\\')]
+        if '(' in l:
+            l = l[:l.index('(')]
         if l:
             yield l
 
@@ -64,6 +66,7 @@ if __name__ == '__main__':
     g = ga144.GA144()
     g.loadprogram("nt.ga")
 
+    print "\n".join(g.node['606'].listing)
     # Load R's symbols, and X's symbols
     # for use in the fragment source
     symbols = copy.copy(g.node['605'].symbols)
@@ -126,8 +129,15 @@ if __name__ == '__main__':
             symbols["_" + ww[1]] = prg.org
             continue
         for w in ww:
-            if re.match("^-?[0-9](x[[0-9a-f]+|[0-9]*)$", w):
-                c.extend(["@p call LIT", w])
+            if re.match("^-?[0-9](x[[0-9a-f]+|[0-9]*)\.?$", w):
+                if w.endswith('.'):
+                    i = int(w[:-1], 0)
+                    h = (i >> 18) & 0x3ffff
+                    l = (i      ) & 0x3ffff
+                    c.extend(["@p call LIT", str(l)])
+                    c.extend(["@p call LIT", str(h)])
+                else:
+                    c.extend(["@p call LIT", w])
             elif w == ";":
                 c.extend(["call DORETURN"])
                 c = newblock(c)
