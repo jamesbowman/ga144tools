@@ -241,6 +241,15 @@ WIRE(WEST, SOUTH)
     .
     .
     .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
 : STACKTOP
 : TO_R
     @p !b !b ;
@@ -268,3 +277,7 @@ WIRE(WEST, SOUTH)
     @p a +
       -1
     a! ! ;
+: 18shr
+  @p push
+    8
+  2/ 2/ unext ;
