@@ -164,7 +164,7 @@ class Node():
             (n, sym) = n.split('.')
             return self.chip.node[n].symbols[sym]
         else:
-            return eval(n)
+            return eval(n, self.symbols)
 
     def bad_dest_0(self, pc, dest, dm):
         return False
@@ -243,7 +243,7 @@ class Node():
                             print l
                             print msg
                             sys.exit(1)
-                        self.lst('%02x: %05x     %s' % (len(ops), opcode, ol))
+                        self.lst('%02x: %05x     %s' % (len(ops), opcode & 0x3ffff, ol))
                         target.append(opcode)
                 else:
                     self.lst('%02x:           %s' % (len(ops), ol))

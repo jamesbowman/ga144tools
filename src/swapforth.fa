@@ -35,40 +35,85 @@
 \   python asm.py $PORT nt.ga           # bootstrap, dump results of running "boot" word
 \
 
+CODE >r
+  @p !b @b
+    @+ !p
+  over call TO_R
+  @+ over
+  call GO
+
+CODE r@
+  call -!
+  @p !b @b
+    @+ !p
+  @p !b @b
+    @ !p
+  over call GO
+
+CODE r>
+  call -!
+  @p !b @b
+    @+ !p
+  @p !b @b
+    @+ !p
+  over call GO
+
+CODE 2>r
+  @p !b @b
+    @+ !p
+  @+ call TO_R
+  over call TO_R
+  @+ over
+  call GO
+
+CODE 2r>
+  @p !b @b
+    @+ !p
+  push
+  call -!
+  @p !b @b
+    @+ !p
+  call -!
+  @p !b @b
+    @+ !p
+  @ over !
+  pop call GO
+
 CODE true
   call DORETURN
   call -!
   @p
     -1
 
-CODE false
-  call DORETURN
+CODE false          #returns #inline
   call -!
   dup or
 
-CODE 1+
-  call DORETURN
+CODE 1+             #returns #inline
   @p . +
     1
 
-CODE 1-
-  call DORETURN
+CODE 1-             #returns #inline
   @p . +
     -1
 
-CODE negate
-  call DORETURN
+CODE negate         #returns
   - @p . +
     1
 
-CODE abs
-  call DORETURN
+CODE abs            #returns
   dup call 18shr    \ x m
   over over . +     \ x m x+m
   or                \ x (x+m)^m
 
 CODE invert
   - call DORETURN
+
+CODE 2*             #returns #inline
+  2*
+
+CODE 2/             #returns #inline
+  2/
 
 CODE emit
   call DORETURN
@@ -77,38 +122,32 @@ CODE emit
   a! ! a!
   @+
 
-CODE +
-  call DORETURN
+CODE +              #returns #inline
   @+ . +
 
-CODE -
-  call DORETURN
+CODE -              #returns #inline
   @+ - . +
   -
 
-CODE and
-  call DORETURN
+CODE and            #returns #inline
   @+ and
 
-CODE or
-  call DORETURN
+CODE or             #returns #inline
   @+ over -
   and or
 
-CODE xor
-  call DORETURN
+CODE xor            #returns #inline
   @+ or
 
-CODE lshift
-  a! call DORETURN
-  push @+
+CODE lshift         #returns #inline
+  a!  push @+
   next lshift
 : lshift
   2* unext
   jump NORTH
 
-CODE rshift
-  a! call DORETURN
+CODE rshift         #returns
+  a!
   call NORTH          \ so body code can use ';'
   push @+
   next main
@@ -121,8 +160,8 @@ CODE rshift
 : pos
   2/ unext ;
 
-CODE *
-  @+ call DORETURN
+CODE *              #returns #inline
+  @+
   a push a!
   @p @p push
     0
@@ -175,28 +214,35 @@ CODE execute
   @+ over
   call GO
 
-CODE rot
-  call DORETURN
+CODE rot            #returns #inline
   a push
   @ over !+
   @ over !
   pop a!
 
-CODE drop
-  @+ call DORETURN
+CODE drop           #returns #inline
+  @+
 
-CODE dup
+CODE 2drop          #returns #inline
+  @+ @+
+
+CODE nip            #returns #inline
+  @+ drop
+
+CODE tuck           #returns #inline
+  @ over dup
+  ! over
+  call -!
+
+CODE dup            #returns #inline
   dup call -!
-  call DORETURN
 
-CODE over
+CODE over           #returns #inline
   @ over
   call -!
-  call DORETURN
 
-CODE swap
+CODE swap           #returns #inline
   @ over !
-  call DORETURN
 
 CODE snap
   a! jump main
@@ -208,75 +254,109 @@ CODE snap
   @+
   jump main
 
-CODE 0<>
-  a! call DORETURN
-  call main
-: main
-  dup dup or
-  over if is0
-  drop - ;
-: is0
-  drop ;
-
-CODE 0=
-  dup call DORETURN
+CODE 0<>            #returns #inline
+  dup
   - @p . +
     1
-  or -
+  or call 18shr
+
+CODE 0=             #returns #inline
+  dup @p . +
+    -1
+  over - and
   call 18shr
 
-CODE 0<
-  call DORETURN
+CODE 0<             #returns #inline
   call 18shr
 
-CODE <>
-  a! call DORETURN
-  call main
-: main
-  dup dup or
-  over @+ or
-  if is0
-  drop - ;
-: is0
-  drop ;
+CODE <>             #returns #inline
+  @+ or dup
+  - @p . +
+    1
+  or call 18shr
 
-CODE =
-  a! call DORETURN
-  call main
-: main
-  dup dup or
-  over @+ or
-  if is0
-  drop ;
-: is0
-  drop - ;
+CODE =              #returns #inline
+  @+ or
+  dup @p . +
+    -1
+  over - and
+  call 18shr
 
-CODE depth
+CODE depth          #returns #inline
   call -!
-  a call DORETURN
+  a
   - @p . +
     STACKTOP
 
-CODE pick
-  call DORETURN
+CODE <              #returns #inline
+  @+ over over
+  or - 2/
+  push - and
+  pop . +
+  - call 18shr
+
+CODE >              #returns #inline
+  push @+ pop
+  over over or
+  - 2/ push
+  - and pop .
+  + -
+  call 18shr
+
+CODE u<             #returns #inline
+  @+
+  over over or
+  dup push
+  - 2/ push
+  - and pop .
+  + - pop
+  or call 18shr
+
+CODE u>             #returns #inline
+  @+ over over
+  over or dup
+  push - 2/
+  push - and
+  pop . +
+  - pop or
+  call 18shr
+
+CODE d+             #returns #inline
+  call 0x200|NORTH
+  call clc
+  @+ @+               
+  a push @           ( ah al bh bl )
+
+  a! push a .
+  + a! pop .
+  + a
+
+  pop a! ! ;
+
+CODE pick          #returns #inline
   a dup push +
   a! @ pop
   a!   
 
+CODE ni
+  call DORETURN
+  call -!
+  pop dup push
+  
 \ ====================================================
 \ external RAM
 \ ====================================================
 
-CODE @
-  a call DORETURN
+CODE @              #inline #returns
+  a
   push @p a! @p
     SOUTH
     call 506.@
   ! ! @
   pop a!
 
-CODE !
-  @+ call DORETURN
+CODE !              #inline #returns
+  @+
   a push @p
     SOUTH
   a! over @p
@@ -292,17 +372,14 @@ CODE c@
   ! ! @
   pop a!
 
-CODE 1-dup
-  call DORETURN
-  @p . +
-    -1
-  dup call -!
-
 %FORTHLIKE%
 
 \ ====================================================
 \ CORE words
 \ ====================================================
+
+: +!
+  tuck @ + swap ! ;
 
 : 2dup
   over over ;
@@ -317,41 +394,142 @@ CODE 1-dup
     0< if negate then
 ;
 
+: dnegate
+    invert swap invert swap
+    1. d+
+;
+
+: dabs
+    dup 0< if dnegate then
+;
+
+: s>d   dup 0< ;
+: d>s   drop ;
+
+: d=                        \ a b c d -- f )
+    rot =                   \ a c b=d
+    >r = r>                 \ a=c b=d
+    and
+;
+
+: d<            \ ( al ah bl bh -- flag )
+    rot         \ al bl bh ah
+    2dup =
+    if
+        2drop u<
+    else
+        > nip nip
+    then
+;
+
+: du<           \ ( al ah bl bh -- flag )
+    rot         \ al bl bh ah
+    2dup =
+    if
+        2drop u<
+    else
+        u> nip nip
+    then
+;
+
+: d-
+    dnegate d+
+;
+
+: d0<
+    nip 0<
+;
+
+: d0=
+    or 0=
+;
+
+: d2*
+    2dup d+
+;
+
+: d2/
+    >r 1 rshift r@
+    17 lshift
+    or r> 2/
+;
+
 \ Divide d1 by n1, giving the symmetric quotient n3 and the remainder
 \ n2.
-\ : sm/rem ( d1 n1 -- n2 n3 )
-\     2dup xor >r     \ combined sign, for quotient
-\     over >r         \ sign of dividend, for remainder
-\     abs >r dabs r>
-\     um/mod          ( remainder quotient )
-\     swap r> sgn     \ apply to remainder
-\     swap r> sgn     \ apply to quotient
-\ ;
+: sm/rem ( d1 n1 -- n2 n3 )
+    2dup xor >r     \ combined sign, for quotient
+    over >r         \ sign of dividend, for remainder
+    abs >r dabs r>
+    um/mod          ( remainder quotient )
+    swap r> sgn     \ apply to remainder
+    swap r> sgn     \ apply to quotient
+;
 
 \ Divide d1 by n1, giving the floored quotient n3 and the remainder n2.
 \ Adapted from hForth
-\ : fm/mod ( d1 n1 -- n2 n3 )
-\     dup >r 2dup xor >r
-\     >r dabs r@ abs
-\     um/mod
-\     r> 0< if
-\         swap negate swap
-\     then
-\     r> 0< if
-\         negate         \ negative quotient
-\         over if
-\             r@ rot - swap 1-
-\         then
-\     then
-\     r> drop
-\ ;
-\ 
-\ : */mod     >r m* r> sm/rem ;
-\ : */        */mod nip ;
+: fm/mod ( d1 n1 -- n2 n3 )
+    dup >r 2dup xor >r
+    >r dabs r@ abs
+    um/mod
+    r> 0< if
+        swap negate swap
+    then
+    r> 0< if
+        negate         \ negative quotient
+        over if
+            r@ rot - swap 1-
+        then
+    then
+    r> drop
+;
+
+: */mod     >r m* r> sm/rem ;
+: */        */mod nip ;
+
+: /mod      >r s>d r> sm/rem ;
+: /         /mod nip ;
+: mod       /mod drop ;
+
+\ From Wil Baden's "FPH Popular Extensions"
+\ http://www.wilbaden.com/neil_bawd/fphpop.txt
+
+: tnegate                           ( t . . -- -t . . )
+    >r  2dup or dup if drop  dnegate 1  then
+    r> +  negate ;
+
+: t*                                ( d . n -- t . . )
+                                    ( d0 d1 n)
+    2dup xor >r                     ( r: sign)
+    >r dabs r> abs
+    2>r                             ( d0)( r: sign d1 n)
+    r@ um* 0                        ( t0 d1 0)
+    2r> um*                         ( t0 d1 0 d1*n .)( r: sign)
+    d+                              ( t0 t1 t2)
+    r> 0< if tnegate then ;
+
+: t/                                ( t . . u -- d . )
+                                    ( t0 t1 t2 u)
+    over >r >r                      ( t0 t1 t2)( r: t2 u)
+    dup 0< if tnegate then
+    r@ um/mod                       ( t0 rem d1)
+    rot rot                         ( d1 t0 rem)
+    r> um/mod                       ( d1 rem' d0)( r: t2)
+    nip swap                        ( d0 d1)
+    r> 0< if dnegate then ;
+
+: m*/  ( d . n u -- d . )
+    >r t*  r> t/ ;
+
+: bounds
+  over + swap ;
 
 \ ====================================================
 \ testing
 \ ====================================================
+
+: hex1
+  15 and dup 10 u< if then
+;
 
 : memtest
 
@@ -363,17 +541,59 @@ CODE 1-dup
   257 c@
 ;
 
-: perf          \ Takes .714 s
+: perf          \ Takes .266 s
   0xaaaa emit
   10000
   begin
     1- dup 0=
-  until
+  until drop
   0xbbbb emit
 ;
 
+: perf2
+  0xaaaa emit
+  1000 for 1000 for 0 drop next next
+  0xbbbb emit
+;
+
+: doubles
+  1 swap
+  begin
+    swap 2* swap
+    1- dup 0=
+  until
+  drop
+;
+
+: fib ( u -- u )
+  1 1 rot for
+    tuck +
+  next
+  ;
+
+include(easter.fs)
+
 : boot
-  100 200 300 
+  100 200 300
+
+  110 100
+  begin
+    2dup <>
+  while
+    dup emit 1+
+  repeat
   
+  \ 10000000000. 104348 33215 m*/
+
   \ memtest
+  \ 0x123456789. 0x121212121.  d+
+  \ 0 begin
+  \   dup 0x1000 u> emit
+  \   0x1000 +
+  \ dup 0= until
+  \ drop
+
+  perf2
+
+  2017 easter
   snap ;

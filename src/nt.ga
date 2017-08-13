@@ -15,39 +15,77 @@ PLOW(`WIRE', 607, WEST, EAST, NORTH)
 include(romSPI.hdr)
 
     @p a!
-      SOUTH
+      EAST
     @p b!
       io
-    @p                      \ d (delay), always on stack
-      0
+    @p @p
+      0x2b
+      0x2a
 : again
     @p call cmd
       eval(`0x03 << 10')    \ read
     @p a! @
       SOUTH
-    call _8o
-    call _8o
-    call _8o
-    drop
-    call 8i
-    push @p a!
+    call 24o
+    dup push
+    over over over
+    over over over @p
       EAST
+    a! call in8
+    pop !
+    dup !
+    @p and push
+      63
 : readloop
-    call _18ibits
+    call in18
     ! next readloop
     jump again
 
-: cmd   \ dn-d
-    call _select
-: 8!    \ dn-d
-    call _8o
+: cmd   \ n-
+    @p !b @p
+      0x2f
+      7
+    push jump oloop
+: 24o
+    @p push
+      23
+: oloop
+    -if tx0
+
+    2* @p !b @p
+      0x3a
+      0x3b
+    !b next oloop
     drop ;
 
-: 8i   \ d-dw
-    dup dup or
-    @p push
+: tx0
+
+    push dup !b
+    over !b pop
+    2* next oloop
+    drop ;
+
+    .
+    .
+    .
+
+: in8
+    dup dup or @p
       7
-    jump _ibits
+    push jump inloop
+
+: in18
+    @p push dup
+      17
+: inloop
+    push !b !b
+    pop @b -if got0
+    drop - 2*
+    - next inloop
+    ;
+: got0
+    drop 2* next inloop
+    ;
 
 ---------------------------- 506 ----------------------------
 
@@ -98,6 +136,13 @@ include(romSPI.hdr)
 : hibyte
   2/ unext jump lo8
 
+: c!
+    @b dup
+    call addr
+    @p ! !
+      @p a! . .
+    ! @b ! ;
+
 \ The three banks for the RAM
 ---------------------------- 505 ----------------------------
 : cold
@@ -118,7 +163,24 @@ include(romSPI.hdr)
     40604
 
 ---------------------------- 706 ----------------------------
-WIRE(WEST, SOUTH)
+    @p a! @p
+        WEST
+        SOUTH
+    b!
+: again
+    @ @
+    dup @p push
+      9
+    2* unext
+    -if noreturn
+    @p !b
+      call 606.DORETURN
+: noreturn
+    drop
+    @p and push
+      63
+    @ !b unext
+    jump again
 
 ---------------------------- 605 ----------------------------
 \ R stk
@@ -247,19 +309,10 @@ WIRE(WEST, SOUTH)
     .
     .
     .
-    .
-    .
-    .
 : STACKTOP
 : TO_R
     @p !b !b ;
       @p call 605.RPUSH
-: zzz
-  dup dup or
-  over if aaa
-  drop ;
-: aaa
-  drop - ;
 : DORETURN
     @p !b ;
       call 605.RETURN
@@ -281,3 +334,7 @@ WIRE(WEST, SOUTH)
   @p push
     8
   2/ 2/ unext ;
+: swap
+  over push over
+  or or pop
+  jump NORTH
