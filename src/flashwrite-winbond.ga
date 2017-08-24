@@ -1,0 +1,97 @@
+include(ga144.hdr)
+
+PLOW(`WIRE', 706, WEST, EAST, EAST)
+define(READ708, WEST)
+include(708out.hdr)
+
+---------------------------- 705 ----------------------------
+\ See block 1428 for ROM definitions
+\ For usage notes:
+\   https://mschuldt.github.io/www.colorforth.com/flash.htm
+\   http://www.winbond.com/resource-files/w25q128fv_revhh1_100913_website1.pdf
+\ EVB001 note: check jumpers J20 and J26
+
+include(romSPI.hdr)
+
+    @p a!
+      WEST                    \ head of the RECITE chain
+    @p @p                     \ d (delay), always on stack
+      0x947
+      0
+: again
+    @p call 2cmd
+      eval(`0x0620 << 2')     \ Sector Erase
+    @ dup push
+    call addr
+    call busy
+    pop                       \ addr on TOS
+
+    @p push
+      15                      \ write 16 pages
+: wrloop1
+    push                      \ save addr
+    @p call 2cmd
+      eval(`0x0602 << 2')     \ Page Program
+    pop dup push              \ send addr
+    call addr
+    @p push
+      127                     \ 256 bytes (128 words)
+: wrloop2
+    @ call 16!
+    next wrloop2
+    call busy
+    pop @p . +                \ increment by 1 page
+      256/64
+    next wrloop1
+
+    @p a!
+      EAST
+: halt
+    ! jump halt
+
+: busy
+    @p call cmd
+      eval(`0x05 << 10')      \ RDSR Read-Status-Register
+    call 8i
+    dup 2/ 2*
+    or if drop;
+    drop jump busy
+
+: addr     \ dn-d             \ Send 64*n as a 24-bit address
+    call _8o
+    call _8o
+    jump 8!
+
+: 2cmd  \ dn-d                \ Send n as a command pair
+    call _select
+    call _8o
+: cmd   \ dn-d                \ Send n as a command
+    call _select
+: 8!    \ dn-d                \ Send n
+    call _8o
+: drop;
+    drop ;
+
+: 16!   \ dn-d
+    dup push
+    @p push                   \ left-justify low byte
+      9
+    2* unext
+    call 8!
+    pop 2* 2*                 \ left-justify high byte
+    jump 8!
+      
+: 8i   \ d-dw
+    dup @p push
+      7
+    jump _ibits
+
+include(recite.hdr)
+
+define(S6, `SOUTH, SOUTH, SOUTH, SOUTH, SOUTH, SOUTH')
+define(N6, `NORTH, NORTH, NORTH, NORTH, NORTH, NORTH')
+PLOW(`RECITE', 604, SOUTH,
+      WEST, S6, WEST,
+  N6, WEST, S6, WEST,
+  N6, NORTH,
+  EAST, EAST, EAST, EAST, EAST)
