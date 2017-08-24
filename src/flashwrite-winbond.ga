@@ -73,12 +73,13 @@ include(romSPI.hdr)
     drop ;
 
 : 16!   \ dn-d
-    dup push
+    over over
     @p push                   \ left-justify low byte
       9
     2* unext
-    call 8!
-    pop 2* 2*                 \ left-justify high byte
+    call _8o
+    drop drop
+    2* 2*                     \ left-justify high byte
     jump 8!
       
 : 8i   \ d-dw
