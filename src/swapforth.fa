@@ -372,6 +372,37 @@ CODE c@
   ! ! @
   pop a!
 
+\ display control
+\ ====================================================
+CODE new
+  @p @p !b    \set a
+     EAST     \west in 605
+     a @p a!
+  !b dup dup
+  or @p !b    \send 0
+     @p !
+  !b @p !b    \send arg1
+     @p ! @p
+  !b @+ !b @p \send arg2
+     ! @ !p   \read return val
+  !b @b @p    \reset a
+     a!
+  !b
+  call DORETURN
+
+CODE update
+  call -! \ what if there is nothing on the stack when -! is called?
+  @p @p !b
+     EAST
+     a @p a!
+  !b @p !b @p
+     @p !
+     4
+  !b @p !b   \send 4
+     @ !p a!
+  @b
+  call DORETURN
+
 %FORTHLIKE%
 
 \ ====================================================

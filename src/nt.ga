@@ -337,4 +337,68 @@ include(romSPI.hdr)
 : swap
   over push over
   or or pop
-  jump NORTH
+  jump NORTH \ why?
+
+---------------------------- 604 ----------------------------
+@p a!
+  EAST
+@p b!
+  SOUTH
+\jump 5  \why does this not work?
+: main
+ jump read  \TODO: fix
+: table
+ jump new
+ jump get
+ jump set
+ jump delete
+ jump update
+: read
+ @ dup @p
+ 1
+ + push ex
+\@ dup push
+ jump read
+ \ ex jump read
+: new
+ dup !b @
+ !b @ !b
+ !b @b !
+ @b ;
+: get
+;
+: set
+;
+: delete
+;
+: update
+ push !b !b
+ !b pop !b
+ @b ! @b ;
+
+---------------------------- 504 ----------------------------
+\ wire node
+@p a!
+  NORTH
+@p b!
+  SOUTH
+: go
+@ !b @
+!b @ !b
+@ !b @b
+! @b !
+jump go
+
+---------------------------- 404 ----------------------------
+\ test stub
+@p a!
+  NORTH
+@p b!
+  SOUTH
+: test
+@ @ @
+@
+\drop drop
+! !
+jump test
+
