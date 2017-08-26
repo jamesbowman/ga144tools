@@ -44,6 +44,8 @@ include(romSPI.hdr)
 : cmd   \ n-
     @p !b @p
       0x2f
+      0x2b
+    !b @p
       7
     push jump oloop
 : 24o
@@ -66,8 +68,6 @@ include(romSPI.hdr)
     drop ;
 
     .
-    .
-    .
 
 : in8
     dup dup or @p
@@ -88,6 +88,7 @@ include(romSPI.hdr)
     ;
 
 ---------------------------- 506 ----------------------------
+\ attr: render color 0 .3 .3
 
     @p b!
       NORTH
@@ -145,18 +146,21 @@ include(romSPI.hdr)
 
 \ The three banks for the RAM
 ---------------------------- 505 ----------------------------
+\ attr: render color .3 .3 0
 : cold
     jump EAST
     50502
     50504
 
 ---------------------------- 507 ----------------------------
+\ attr: render color .3 .3 0
 : cold
     jump WEST
     50702
     50704
 
 ---------------------------- 406 ----------------------------
+\ attr: render color .3 .3 0
 : cold
     jump NORTH
     40602
@@ -338,67 +342,3 @@ include(romSPI.hdr)
   over push over
   or or pop
   jump NORTH \ why?
-
----------------------------- 604 ----------------------------
-@p a!
-  EAST
-@p b!
-  SOUTH
-\jump 5  \why does this not work?
-: main
- jump read  \TODO: fix
-: table
- jump new
- jump get
- jump set
- jump delete
- jump update
-: read
- @ dup @p
- 1
- + push ex
-\@ dup push
- jump read
- \ ex jump read
-: new
- dup !b @
- !b @ !b
- !b @b !
- @b ;
-: get
-;
-: set
-;
-: delete
-;
-: update
- push !b !b
- !b pop !b
- @b ! @b ;
-
----------------------------- 504 ----------------------------
-\ wire node
-@p a!
-  NORTH
-@p b!
-  SOUTH
-: go
-@ !b @
-!b @ !b
-@ !b @b
-! @b !
-jump go
-
----------------------------- 404 ----------------------------
-\ test stub
-@p a!
-  NORTH
-@p b!
-  SOUTH
-: test
-@ @ @
-@
-\drop drop
-! !
-jump test
-
