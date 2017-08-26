@@ -164,8 +164,21 @@ Compilation in this case is simple concatenation of the previous words.
 The fixed overhead of call/return is avoided.
 
 Uses flash space.
-The cost of flash is about 1 cent for every 100 Kbytes.
+The price of flash is about 1 cent for every 100 Kbytes.
+}
+\end{imageframe}
 
+\begin{imageframe}{fig9}
+\note{
+One more thing.
+
+Some fragments jumps back to thmself - like a FOR, DO or UNTIL.
+
+If the fragment is straight-line code, it's an easy transformation to
+compile a native jump back to the start of the code instead of
+re-requesting the same fragment.
+
+This optimization makes things about 200X faster.
 }
 \end{imageframe}
 
