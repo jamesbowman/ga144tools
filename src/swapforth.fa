@@ -79,8 +79,7 @@ CODE 2r>
   @ over !
   pop call GO
 
-CODE true
-  call DORETURN
+CODE true           #returns #inline
   call -!
   @p
     -1
@@ -97,17 +96,17 @@ CODE 1-             #returns #inline
   @p . +
     -1
 
-CODE negate         #returns
+CODE negate         #returns #inline
   - @p . +
     1
 
-CODE abs            #returns
+CODE abs            #returns #inline
   dup call 18shr    \ x m
   over over . +     \ x m x+m
   or                \ x (x+m)^m
 
-CODE invert
-  - call DORETURN
+CODE invert         #returns #inline
+  -
 
 CODE 2*             #returns #inline
   2*
@@ -139,7 +138,7 @@ CODE or             #returns #inline
 CODE xor            #returns #inline
   @+ or
 
-CODE lshift         #returns #inline
+CODE lshift         #returns
   a!  push @+
   next lshift
 : lshift
@@ -343,6 +342,13 @@ CODE ni
   call -!
   pop dup push
   
+\ : sgn ( u1 n1 -- n2 ) \ n2 is u1 with the sign of n1
+CODE sgn            #returns #inline
+  @p and @+ @p
+    0x20000
+    0x1ffff
+  and or
+
 \ ====================================================
 \ external RAM
 \ ====================================================
@@ -421,9 +427,6 @@ CODE update
 : -rot
   rot rot ;
 
-: sgn ( u1 n1 -- n2 ) \ n2 is u1 with the sign of n1
-    0< if negate then
-;
 
 : dnegate
     invert swap invert swap
@@ -519,7 +522,7 @@ CODE update
 
 : /mod      >r s>d r> sm/rem ;
 : /         /mod nip ;
-: mod       /mod drop ;
+: mod       >r s>d r> sm/rem drop ;
 
 \ From Wil Baden's "FPH Popular Extensions"
 \ http://www.wilbaden.com/neil_bawd/fphpop.txt
@@ -587,6 +590,11 @@ CODE update
   0xbbbb emit
 ;
 
+: bench
+  50000 0 do
+    i 7 mod drop
+  loop ;
+
 : doubles
   1 swap
   begin
@@ -614,17 +622,21 @@ include(easter.fs)
     dup emit 1+
   repeat
   
-  \ 10000000000. 104348 33215 m*/
+\ \ 10000000000. 104348 33215 m*/
 
-  \ memtest
-  \ 0x123456789. 0x121212121.  d+
-  \ 0 begin
-  \   dup 0x1000 u> emit
-  \   0x1000 +
-  \ dup 0= until
-  \ drop
+\ \ memtest
+\ \ 0x123456789. 0x121212121.  d+
+\ \ 0 begin
+\ \   dup 0x1000 u> emit
+\ \   0x1000 +
+\ \ dup 0= until
+\ \ drop
 
-  perf2
+\ perf2
+
+  0xcccc emit
+  bench
+  0xcccc emit
 
   2017 easter
   snap ;

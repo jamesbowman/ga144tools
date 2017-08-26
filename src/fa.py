@@ -36,6 +36,11 @@ class Node(ga144.Node):
             r += self.prefix
         return r
 
+tags = {
+    '#returns'  : 0x080,
+    '#inline'   : 0x100,
+}
+
 class Program:
     def __init__(self):
         self.s = {}
@@ -117,10 +122,6 @@ if __name__ == '__main__':
             c0s = c[0].split()
             kind = c0s[0]
             blockname = c0s[1]
-            tags = {
-                '#returns'  : 0x080,
-                '#inline'   : 0x100,
-            }
             flags = sum([tags[ht] for ht in c0s[2:]])
             assert kind == "CODE"
             symbols["_" + blockname] = prg.org
@@ -139,12 +140,26 @@ if __name__ == '__main__':
     # From here on code uses the forth-like syntax
     cs = []
     c = []
-    def newblock(c):
+    def newblock(c, flags = 0):
         if c:
-            prg.append(process_code(c))
+            prg.append(process_code(c), flags)
         return []
     HERE = 0
     variables = {}
+    compilable = {
+        "i": [
+            "call -!",
+            "pop pop over",
+            "over push push",
+            "over - . +" ],
+        ">r": [
+            "call TO_R",
+            "@+" ],
+        "r>": [
+            "call -!",
+            "@p !b @b",
+            "  @+ !p", ],
+    }
     for l in cleanup(p1.stdout):
         ww = [w.lower() for w in l.split()]
         if ww[0] == "variable":
@@ -152,10 +167,11 @@ if __name__ == '__main__':
             HERE += 2
             continue
         if ww[0] == ":":
+            defining = ww[1]
             assert cs == []
             c = newblock(c)
-            lst(": %s" % ww[1])
-            symbols["_" + ww[1]] = prg.org
+            lst(": %s" % defining)
+            symbols["_" + defining] = prg.org
             ww = ww[2:]
         for w in ww:
             if re.match("^-?[0-9](x[[0-9a-f]+|[0-9]*)\.?$", w):
@@ -170,8 +186,14 @@ if __name__ == '__main__':
             elif w in variables:
                 c.extend(["@p call LIT", str(variables[w])])
             elif w == ";":
-                c.extend(["call DORETURN"])
-                c = newblock(c)
+                samefrag = symbols["_" + defining] == prg.org
+                print "END OF", defining, samefrag
+                flags = 0
+                if samefrag:
+                    flags |= (tags['#inline'] | tags['#returns'])
+                else:
+                    c.extend(["call DORETURN"])
+                c = newblock(c, flags)
             elif w == "begin":
                 cs.append((prg.org, len(c) + 1))
                 c.extend(["@p call GO", "0x3ffff"])
@@ -273,13 +295,8 @@ if __name__ == '__main__':
                 prg.resolve(cs.pop())
                 if w == "loop":
                     c.extend(["pop drop"])
-            elif w == "i":
-                c.extend([
-                    "call -!",
-                    "pop pop over",
-                    "over push push",
-                    "over - . +"
-                ])
+            elif w in compilable:
+                c.extend(compilable[w])
             else:
                 (flags, code) = prg.s[symbols["_" + w]]
                 if flags & 0x100:
