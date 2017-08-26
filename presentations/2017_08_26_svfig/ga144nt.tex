@@ -1,0 +1,188 @@
+\documentclass[compress]{beamer}
+
+\usetheme{naked}
+\usecolortheme{dark}
+
+\usepackage{pgfpages}
+\setbeamertemplate{note page}[plain]
+\setbeamercolor{note page}{fg=black}
+\setbeameroption{show notes on second screen}
+%\setbeameroption{hide notes} % Only slides
+
+% \usepackage[utf8]{inputenc} % utf8 file encoding
+% \usepackage[UTF8]{ctex}
+
+\usepackage{listings}
+\usepackage[T1]{fontenc} % powerful pdf output encoding
+
+\title{A novel execution model for GA144}
+\date{\today}
+\author{Michael Schuldt, Mark Flamer, James Bowman}
+
+\begin{document}
+
+\titlepage
+
+\emptyslide
+
+\begin{imageframe}{GA144}
+\note{
+\url{http://www.greenarraychips.com/}
+}
+\end{imageframe}
+
+\begin{imageframe}{fig1}
+\note{
+Instructions are grouped into polyads, 1-4 micro-ops packed into an 18-bit word.
+These 18-bit polyads are the basic unit of execution. Unused slots are NOPs.
+
+A crucial feature of the GA144 is that each node can execute instructions from its neighbor.
+This is "port execution" - you just jump to an IO port, and the node executes whatever it
+receives.
+
+That's how the GA144 boots. ROM in the SPI node (for example) reads out the SPI contents and sends it to
+a neighbor. These instructions can make the neighbor do anything, such as load RAM or set up registers, or
+even send some instructions to *its* neighbor. This can be extended indefinitely, potentially making a boot chain
+that covers the whole chip.
+}
+\end{imageframe}
+
+\begin{imageframe}{fig3}
+\note{
+With one modification, this bootstrap procedure is the basis for the new execution model.
+The spi node boots by reading a stream from flash, but
+instead of loading from flash at address zero, it reads an address from the running node.
+}
+\end{imageframe}
+
+\begin{imageframe}{fig2}
+\note{
+Each code sequence is a *fragment*, accessed by a fragment number -- a scaled byte offset into flash.
+Fragments are sized sequences of instruction polyads -- these execute on the X node.
+Every fragment must end with the instructions to tell F which fragment is next.
+One important restriction is that fragments can only execute from the beginning.
+}
+\end{imageframe}
+
+\begin{imageframe}{fig4}
+\note{
+Some examples of code flow with fragments like this.
+
+In fact a program can be broken up into fragments like this.
+Every time there is a branch or label, there is a fragment boundary.
+In other words, a fragment is a basic block: a sequence of non-branch instructions.
+}
+\end{imageframe}
+
+\begin{imageframe}{fig5}
+\note{
+But consider subroutine calls -- in other words, Forth words.
+To call a word FOO, a fragment needs to request that FOO executes next,
+but also must specify another fragment to be executed when FOO completes.
+So there must be a call-return stack
+}
+\end{imageframe}
+
+\begin{imageframe}{fig6}
+\note{
+The top of the parameter stack (TOS) is the hardware top-of-stack (T) in X.
+The rest of the stack is in RAM in X. The X node's A register points to the top of the stack, which grows down.
+There are about 24 cells for the parameter stack.
+
+The return stack is in node R.
+So to execute words `>R`, `R@` and `R>` X has to make a request to R.
+Like the parameter stack, the return stack grows down.
+The return stack is about 50 cells deep.
+
+The IP is a little bit subtle. It is really the current location that F is fetching from flash.
+It's not tracked directly, except as the fragment number that flows from R to F.
+}
+\end{imageframe}
+
+\begin{frame}[fragile]
+\begin{verbatim}
+CODE +                #returns #inline
+    @+ . +
+\end{verbatim}
+\note{
++ fetches the value from the parameter stack, then adds them, leaving the result in T
+}
+\end{frame}
+
+\begin{frame}[fragile]
+\begin{verbatim}
+CODE DROP             #returns #inline
+    @+
+\end{verbatim}
+\note{
+DROP fetches from the stack into T. Note that it doesn't need to balance X's hardware stack::
+}
+\end{frame}
+
+\begin{frame}[fragile]
+\begin{verbatim}
+CODE SWAP             #returns #inline
+    @ over !
+\end{verbatim}
+\note{
+SWAP again does not need to balance the hardware stack
+}
+\end{frame}
+
+\begin{imageframe}{fig7}
+\note{
+As described, there needs to be 'glue' fragments between consecutive calls.
+So FOO needs three glue fragments after calls to A, B and C.
+
+Of course the tail call optimization can remove one of these. But actually can do better
+than this.
+
+The first fragment of FOO pushes the fragment numbers of B and C on the R stack,
+then jumps to A.
+When A returns, it executes B.
+When B returns it executes C.
+
+This is not new - it's sometimes used by exploit code where it's called
+"return oriented programming"
+
+\footnotesize
+\url{https://en.wikipedia.org/wiki/Return-oriented_programming}
+\normalsize
+
+So FOO compiles to a single setup fragment.
+The return stack needs to be deep enough to hold a chain of calls like this --
+so the implementation has a 50 cell R stack.
+}
+\end{imageframe}
+
+\begin{imageframe}{fig8}
+\note{
+And of course we can go even further.
+If the words are all inlinable, then FOO doesn't need any calls at all.
+Compilation in this case is simple concatenation of the previous words.
+
+The fixed overhead of call/return is avoided.
+
+Uses flash space.
+The price of flash is about 1 cent for every 100 Kbytes.
+}
+\end{imageframe}
+
+\begin{imageframe}{fig9}
+\note{
+One more thing.
+
+Some fragments jumps back to thmself - like a FOR, DO or UNTIL.
+
+If the fragment is straight-line code, it's an easy transformation to
+compile a native jump back to the start of the code instead of
+re-requesting the same fragment.
+
+This optimization makes things about 200X faster.
+}
+\end{imageframe}
+
+\emptyslide
+
+\end{document}
+
