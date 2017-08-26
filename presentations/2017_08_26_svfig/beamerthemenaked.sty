@@ -1,0 +1,105 @@
+\usepackage{tikz}
+
+\setbeamertemplate{frametitle}{} % no titles
+\setbeamertemplate{navigation symbols}{\transfade[duration=0.3]} % no navigation symbols
+
+% default colors (black on white)
+\definecolor{darkgray}{cmyk}{0.7,0.7,0.7,0}
+\definecolor{gray}{cmyk}{0.3,0.3,0.3,0}
+\definecolor{lightgray}{cmyk}{0.1,0.1,0.1,0}
+
+\setbeamercolor{background canvas}{bg=white}
+\setbeamercolor{normal text}{fg=black}
+\setbeamercolor{alerted text}{fg=gray}
+\setbeamercolor{section in toc}{fg=gray}
+\setbeamercolor{box title}{fg=gray}
+
+\setbeamercolor{block title}{bg=lightgray,fg=black}
+\setbeamercolor{block title alerted}{use=block title,fg=red}
+\setbeamercolor{block title example}{use=block title}
+
+\setbeamercolor{caption name}{fg=gray}
+
+\setbeamercolor{description item}{fg=gray}
+
+\setbeamercolor{itemize item}{fg=gray}
+\setbeamercolor{itemize subitem}{fg=gray}
+\setbeamercolor{itemize subsubitem}{fg=gray}
+
+\setbeamercolor{enumerate item}{fg=darkgray}
+\setbeamercolor{enumerate subitem}{fg=darkgray}
+\setbeamercolor{enumerate subsubitem}{fg=darkgray}
+
+% default font choices
+\usepackage{venturis}
+
+\renewcommand{\tiny}{\fontsize{7pt}{8pt}\selectfont}
+\renewcommand{\scriptsize}{\fontsize{9pt}{12pt}\selectfont}
+\renewcommand{\footnotesize}{\fontsize{10pt}{12pt}\selectfont}
+\renewcommand{\small}{\fontsize{12pt}{18pt}\selectfont}
+\renewcommand{\normalsize}{\fontsize{14pt}{18pt}\selectfont}
+\renewcommand{\large}{\fontsize{16pt}{24pt}\selectfont}
+\renewcommand{\Large}{\fontsize{24pt}{37pt}\selectfont}
+\renewcommand{\LARGE}{\fontsize{36pt}{48pt}\selectfont}
+\renewcommand{\huge}{\fontsize{48pt}{54pt}\selectfont}
+\renewcommand{\Huge}{\fontsize{80pt}{96pt}\selectfont}
+
+\setbeamerfont{enumerate item}{size=\LARGE}
+\setbeamerfont*{quote}{size=\large,shape=\itshape,series=\bfseries}
+\setbeamerfont{word frame}{size=\Huge}
+
+\setbeamertemplate{quote begin}{\begin{tikzpicture}[remember picture,overlay]
+	\node[text opacity=0.2,xshift=2cm] at (current page.west) {\fontfamily{ptm}\fontsize{400pt}{96pt}\selectfont ''};
+	\end{tikzpicture}}
+\setbeamertemplate{quote end}{}
+
+\setbeamertemplate{blocks}[rounded]
+
+\setbeamertemplate{title page}
+{
+% background image on title page:
+%	\begin{tikzpicture}[overlay]
+%		\node[inner sep=0pt] at (5.39,-4.45) {\includegraphics[width=1.01\paperwidth]{background_c3}};
+%	\end{tikzpicture}
+   ~
+
+	\vskip2cm
+  {\Large\inserttitle} \\
+  \insertsubtitle
+
+  \vskip1.0cm\par
+  {\small \insertauthor} \par
+  {\small \insertinstitute} \par
+  {\small \insertdate}
+}
+
+%%% An imageframe has one fullscreen image as background
+%%% and maybe some text on top.
+\newenvironment{imageframe}[1]
+	{
+		\setbeamertemplate{background}{%
+			\parbox[c][\paperheight]{\paperwidth}{%
+				\includegraphics[width=\paperwidth,height=\paperheight]{#1}
+		}}
+		\begin{frame}
+		\color{white}
+	}{\end{frame}}
+
+%%% A wordframe has one word (or few) big and centered
+\newenvironment{wordframe}
+	{
+		\begin{frame}
+		\bf\usebeamerfont{word frame}
+	}{\end{frame}}
+
+%%% A defnframe defines a word or phrase
+\newenvironment{defnframe}[1]
+	{
+		\begin{frame}
+      \usebeamerfont{title}\usebeamercolor[fg]{box title}\Large #1: \\
+		\vskip0.7cm
+		\usebeamercolor[fg]{normal text}\Large\itshape
+	}{\end{frame}}
+
+\newcommand{\emptyslide}{\begin{frame}[plain]\end{frame}}
+
