@@ -29,9 +29,14 @@ class FlashReader(GA144):
         du.write(d[2:])
 
 class FlashWriter(GA144):
-    def __init__(self, port, flashfile):
+    def __init__(self, port, args):
         GA144.__init__(self)
-        self.loadprogram("flashwrite.ga")
+        writername = "flashwrite.ga"
+        if "--winbond" in args:
+            writername = "flashwrite-winbond.ga"
+            args.remove("--winbond")
+        flashfile = args[0]
+        self.loadprogram(writername)
         # print "\n".join(self.node['705'].listing)
 
         im = open(flashfile, "rb")
@@ -65,7 +70,7 @@ if __name__ == '__main__':
     if op == 'read':
         FlashReader(port, *sys.argv[3:])
     elif op == 'write':
-        FlashWriter(port, *sys.argv[3:])
+        FlashWriter(port, sys.argv[3:])
     else:
         print "unknown operation '%s'" % op
         sys.exit(1)
