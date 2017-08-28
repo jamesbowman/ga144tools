@@ -90,12 +90,24 @@ The rest of the stack is in RAM in X. The X node's A register points to the top 
 There are about 24 cells for the parameter stack.
 
 The return stack is in node R.
-So to execute words `>R`, `R@` and `R>` X has to make a request to R.
+So to words
+\textbf{>R},
+\textbf{R@} and
+\textbf{R>}
+X has to make a request to R.
 Like the parameter stack, the return stack grows down.
 The return stack is about 50 cells deep.
 
 The IP is a little bit subtle. It is really the current location that F is fetching from flash.
 It's not tracked directly, except as the fragment number that flows from R to F.
+}
+\end{imageframe}
+
+\begin{imageframe}{layout}
+\note{
+actual layout.
+
+The RAM controller is cyan, and its storage nodes are yellow. 192 words total, about 384 bytes.
 }
 \end{imageframe}
 
