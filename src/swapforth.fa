@@ -118,8 +118,27 @@ CODE emit
   call DORETURN
   a over @p
     EAST
-  a! ! a!
-  @+
+  a! @p !
+   1
+  ! a! @+
+
+\ CODE wait
+\   @+ a push @p
+\      EAST
+\   a! @p !
+\      2
+\   over ! !
+\   @ pop a!
+\  call DORETURN
+
+CODE sleep
+  a @p a! @p
+    EAST
+    2
+  ! dup !
+  over ! @
+  drop a! @+
+ call DORETURN
 
 CODE +              #returns #inline
   @+ . +
@@ -633,6 +652,7 @@ include(easter.fs)
 \ \ drop
 
 \ perf2
+\  2 sleep
 
   0xcccc emit
   bench
