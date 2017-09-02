@@ -3,8 +3,6 @@ include(ga144.hdr)
 define(READ_FOREVER, `')
 include(708out.hdr)
 
-PLOW(`WIRE', 607, WEST, EAST, NORTH)
-
 ---------------------------- 705 ----------------------------
 \ See block 1428 for ROM definitions
 \ For usage notes:
@@ -342,3 +340,334 @@ include(romSPI.hdr)
   over push over
   or or pop
   jump NORTH \ why?
+
+
+
+
+
+---------------------------- 610 ----------------------------
+   @p a!
+   373
+   @p b!
+   469
+: __start
+    jump main
+    ; . . . 
+    jump wait
+: main
+    @ dup push . 
+    ex . . . 
+    call main
+: wait
+    @p b! !b . 
+    277 
+    @ !b @ . 
+    !b @b ! @p 
+    469 
+    b! ; . . 
+
+
+---------------------------- 609 ----------------------------
+   @p a!
+   469
+   @p b!
+   373
+: __start
+    jump main
+    ; . . . 
+    jump wait
+: main
+    @ dup push . 
+    ex . . . 
+    jump main
+: wait
+    !b @ !b . 
+    @ !b @b . 
+    ! ; . . 
+
+
+---------------------------- 608 ----------------------------
+   @p a!
+   373
+   @p b!
+   469
+: __start
+    jump run
+    jump emit
+    jump wait
+: run
+    @ dup push . 
+    ex . . . 
+    jump run
+: emit
+    @p b! @ . 
+    277 
+    !b @p b! ; 
+    469 
+: wait
+    !b @ !b . 
+    @ !b @b . 
+    ! ; . . 
+
+
+---------------------------- 607 ----------------------------
+   @p a!
+   469
+   @p b!
+   373
+: __start
+    jump main
+    @ !b ; . 
+    jump wait
+: main
+    @ dup !b . 
+    push ex . . 
+    jump main
+: wait
+    @ !b @ . 
+    !b @b ! ; 
+
+\---------------------------- 708 ----------------------------
+\: __start
+\: emit1
+\    @p and @p . 
+\    1 
+\    3 
+\    or !b @p . 
+\    904 
+\    push . . . 
+\    unext ; . . 
+\: emit8
+\    @p call emit1
+\    0 
+\    @p push . . 
+\    7 
+\: _12
+\    dup call emit1
+\    2/ next _12
+\    @p jump emit1
+\    1 
+\: emit18
+\    @p call emit8
+\    0 
+\    drop call emit8
+\    call emit8
+\    jump emit8
+\: main
+\    @p b! @p . 
+\    349 
+\    277 
+\    a! . . . 
+\: loop
+\    @ call emit18
+\    jump loop
+\
+
+---------------------------- 611 ----------------------------
+   @p a!
+   469
+   @p b!
+   373
+: __start
+    jump main
+    ; . . . 
+    jump wait
+: main
+    @ dup !b . 
+    push ex . . 
+    call main
+: wait
+    @p a! . . 
+    277 
+: loop
+    @ -if _8
+    - @p a! . 
+    469 
+    ! ; . . 
+: _8
+    !b @b ! . 
+    jump loop
+
+
+---------------------------- 709 ----------------------------
+   @p a!
+   325
+   @p b!
+   349
+: __start
+: main
+    @p push . . 
+    3 
+: _2
+    @p @p next _2
+: _40
+    341 
+    170 
+    @p push push . 
+    341 
+    push push push . 
+    push push push . 
+    push @p @p @p 
+    0 
+    2 
+    2 
+    @p @p @p @p 
+    2 
+: _30
+    2 
+    2048 
+    170 
+: cycle
+    over or dup . 
+    !b dup ! . 
+    over or dup . 
+    !b dup ! . 
+    push push 2* . 
+    -if _23
+    drop 2* . . 
+    -if _25
+    drop 2* . . 
+    -if _27
+    drop . . . 
+    @p . . . 
+    call _30
+    @p a! ! @p 
+    373 
+    325 
+    a! pop pop . 
+    drop push 2* . 
+    2* -if _37
+    drop . . . 
+    @p . . . 
+    call _40
+    @p a! ! @p 
+    373 
+    325 
+    a! !b @p . 
+    2 
+: _37
+    @p . . . 
+    2 
+: _27
+    @p . . . 
+    2 
+: _25
+    @p . . . 
+    2 
+: _23
+    pop pop . . 
+    jump cycle
+
+
+---------------------------- 710 ----------------------------
+   @p a!
+   469
+   @p b!
+   349
+: __start
+    jump main
+    ; . . . 
+    jump wait
+: 1s
+    call @waiting-time
+    if 8  \ 8hz
+    . @p . + 
+    -1 
+    dup call !waiting-time
+    if _8
+    ; . . . 
+: _8
+    call @waiting-fragment
+    @p b! !b @p 
+    277 
+    349 
+    b! . . . 
+: 8hz
+    @b @p and . 
+    8192 
+    if _17
+    @p b! @b dup 
+    277 
+    push ex . . 
+    @p b! . . 
+    349 
+: _17
+    ; . . . 
+: wait
+    @b @p . + 
+    1 
+    call !waiting-fragment
+    @b jump !waiting-time
+: !waiting-fragment
+    @p drop !p ; 
+: @waiting-fragment
+    @p ; . . 
+    0 
+: !waiting-time
+    @p drop !p ; 
+: @waiting-time
+    @p ; . . 
+    0 
+: main
+    @p push ex . 
+    373 
+    ; . . . 
+
+
+---------------------------- 715 ----------------------------
+   @p a!
+   325
+   @p b!
+   349
+: __start
+    jump main
+: -osc
+    push . . . 
+: _10
+    @p !b dup . 
+    196608 
+    2/ dup push . 
+    unext @p !b . 
+    131072 
+    over @p and . 
+    1 
+    + push . . 
+    unext next _10
+    dup or !b dup 
+    @p push . . 
+    30000 
+: _16
+    drop @b - . 
+    -if _15
+    next _16
+    ; . . . 
+: _15
+    dup or pop . 
+    drop ; . . 
+: main
+    @p @p push . 
+    12895 
+    2000 
+: _29
+    dup @p . . 
+    5000 
+    call -osc
+    if prep
+    drop @p . + 
+    1 
+    next _29
+    jump main
+: prep
+    @p @p @p @p 
+    0 
+    131072 
+    2048 
+    198656 
+    @p @p @p @p 
+    0 
+    131072 
+    2048 
+    198656 
+: run
+    !b !b @ . 
+    drop jump run
