@@ -9,7 +9,6 @@ class Viz:
 
     def rect(self, x, y, w, h):
         ctx = self.ctx
-
         ctx.move_to(x, y)
         ctx.line_to(x + w, y)
         ctx.line_to(x + w, y + h)
@@ -54,6 +53,11 @@ class Viz:
         ctx.move_to(x + ((w - tw) / 2), y + ((h + th) / 2))
         ctx.show_text(label)
         ctx.restore()
+
+    def render_color(self, r, c, label, *rgb):
+        rgb = (float(c) for c in rgb)
+        self.ctx.set_source_rgba(*rgb)
+        self.cell(r, c, label, 1.0)
 
     def render_recite(self, r, c, label, src, dst):
         self.render_wire(r, c, label, src, dst, 16)
