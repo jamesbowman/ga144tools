@@ -265,11 +265,11 @@ CODE swap           #returns #inline
 CODE snap
   a! jump main
 : main
-  a push
-  @p a! !
+  a over @p
     EAST
-  pop a!
-  @+
+  a! @p !
+   1
+  ! a! @+
   jump main
 
 CODE 0<>            #returns #inline
