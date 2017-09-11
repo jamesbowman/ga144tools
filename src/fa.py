@@ -106,7 +106,7 @@ if __name__ == '__main__':
     def process_code(c):
         n.symbols = symbols
         n.listing = []
-        n.load("\n".join(c))
+        n.load("\n".join(c), fragment=True)
 
         lst("(fragment %d)" % prg.org)
         lst("\n".join(n.listing[1:]))
