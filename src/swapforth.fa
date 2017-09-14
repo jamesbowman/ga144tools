@@ -416,16 +416,15 @@ CODE new
   call DORETURN
 
 CODE update
-  call -! \ what if there is nothing on the stack when -! is called?
   @p @p !b
      EAST
      a @p a!
   !b @p !b @p
      @p !
      4
-  !b @p !b   \send 4
+  !b @p !b
      @ !p a!
-  @b
+  @b drop
   call DORETURN
 
 %FORTHLIKE%
