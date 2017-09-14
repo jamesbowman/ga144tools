@@ -415,6 +415,20 @@ CODE new
   !b
   call DORETURN
 
+CODE delete
+  @p @p !b
+     EAST
+     a @p a!
+  !b @p !b @p
+     @p !
+     3
+  !b @p !b
+    @p !
+  !b @+ @p
+     @ !p a!
+  !b @b drop
+  call DORETURN
+
 CODE update
   @p @p !b
      EAST
