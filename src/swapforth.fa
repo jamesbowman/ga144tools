@@ -399,7 +399,7 @@ CODE c@
 
 \ display control
 \ ====================================================
-CODE new
+CODE g-new
   @p @p !b    \set a
      EAST     \west in 605
      a @p a!
@@ -415,7 +415,7 @@ CODE new
   !b
   call DORETURN
 
-CODE delete
+CODE g-del
   @p @p !b
      EAST
      a @p a!
@@ -429,7 +429,7 @@ CODE delete
   !b @b drop
   call DORETURN
 
-CODE update
+CODE redraw
   @p @p !b
      EAST
      a @p a!
@@ -589,6 +589,35 @@ CODE update
 : bounds
   over + swap ;
 
+
+\ ====================================================
+\ display graphics
+
+: {rectangle ( - w1 w2 )
+\ |7b Y1|7b Y0|1000|    |1bfill|3b C|7b X1|7b X0|
+0x8 0 ;
+
+: r.x ( w1 w2 x0 x1 - w1 W2 )
+7 lshift or or ;
+
+: r.y ( w1 w2 y0 y1 - W1 w2 )
+7 lshift or
+4 lshift
+rot or swap
+;
+
+: r.color ( w1 w2 c - w1 W2)
+14 lshift or ;
+
+: r.fill ( BA - BA)
+0x1ffff and ;
+
+: r.nofill
+r.fill 0x20000 or ;
+
+: r.blue 4 r.color ;
+: end} g-new ;
+
 \ ====================================================
 \ testing
 \ ====================================================
@@ -646,8 +675,46 @@ include(easter.fs)
 
 : boot
   100 200 300
+: sleeptest
+0 begin
+  1 + dup emit
+  1 sleep
+  0 until
+ ;
 
-  110 100
+: _show g-new redraw 4 sleep ;
+: _del dup emit g-del redraw 4 sleep ;
+: graphicstest
+\ Animate the display of Mark's original image
+  260104 81792 _show
+  131384 139283 _show
+  129352 90004 _show
+  260599 16896 _show
+  503 49791 _show
+  129527 33343 _show
+  1111 emit
+  _del _del _del _del
+ ;
+
+
+VARIABLE color
+: colortest
+0 color !
+begin
+{rectangle
+  0 127 r.y
+  0 127 r.x
+  r.fill
+  color @ r.color
+  2dup emit emit
+ end}
+ redraw
+ 2 sleep
+ g-del
+ color dup @ 1 + 7 and swap ! 
+ 0 until
+;
+
   begin
     2dup <>
   while
