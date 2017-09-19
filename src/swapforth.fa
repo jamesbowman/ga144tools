@@ -615,7 +615,7 @@ m1 @ or m1 ! ;
 m2 @ 0x1ffff and m2 ! ;
 
 : r.nofill
-m1 @ r.fill 0x20000 or m2 ! ;
+m2 @ r.fill 0x20000 or m2 ! ;
 
 : end}
   m1 @ m2 @ g-new ;
