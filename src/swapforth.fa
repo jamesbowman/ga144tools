@@ -617,10 +617,17 @@ m2 @ 0x1ffff and m2 ! ;
 : r.nofill
 m1 @ r.fill 0x20000 or m2 ! ;
 
-: r.blue 4 r.color ;
-
 : end}
   m1 @ m2 @ g-new ;
+
+: black 0 ;
+: red 1 ;
+: green 2 ;
+: yellow 3 ;
+: blue 4 ;
+: purple 5 ;
+: green 6 ;
+: white 7 ;
 
 \ ====================================================
 \ testing
