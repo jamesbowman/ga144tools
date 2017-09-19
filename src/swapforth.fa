@@ -682,6 +682,121 @@ m2 @ r.fill 0x20000 or m2 ! ;
   next
   ;
 
+VARIABLE second
+VARIABLE minute
+VARIABLE hour
+
+VARIABLE t1
+
+: update-clock-display
+\ seconds
+second @
+10 t1 !
+
+5 for
+{rectangle
+10 30 r.x
+t1 @ dup 15 + t1 !
+dup 7 + r.y
+
+dup 1 and if
+  r.fill
+else
+  r.nofill
+then
+
+1 rshift
+
+red r.color
+end} drop ( id )
+next
+drop ( seconds )
+
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+\minutes
+
+minute @
+10 t1 !
+
+5 for
+{rectangle
+40 60 r.x
+t1 @ dup 15 + t1 !
+dup 7 + r.y
+
+dup 1 and if
+  r.fill
+else
+  r.nofill
+then
+
+1 rshift
+
+blue r.color
+end} drop ( id )
+next
+drop ( minutes )
+
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+\hours
+
+hour @
+10 t1 !
+
+4 for
+{rectangle
+70 90 r.x
+t1 @ dup 15 + t1 !
+dup 7 + r.y
+
+dup 1 and if
+  r.fill
+else
+  r.nofill
+then
+
+1 rshift
+
+purple r.color
+end} drop ( id )
+next
+drop ( hour )
+
+redraw
+1 16 for
+dup g-del 2 +
+next drop
+
+;
+
+: clock
+111 222
+1111 emit
+8 hour !
+55 minute !
+0 second !
+
+begin
+
+second @ 1 + dup second !
+60 = if
+  minute @ 1 + dup minute !
+  60 = if
+    hour @ 1 + dup hour !
+      24 = if
+         0 hour !
+    then
+  0 minute !
+  then
+
+0 second !
+then
+update-clock-display
+16 sleep
+1 emit
+0 until
+;
+
 include(easter.fs)
 
 : boot
@@ -717,7 +832,6 @@ begin
   0 127 r.x
   r.fill
   color @ r.color
-  2dup emit emit
  end}
  redraw
  2 sleep
