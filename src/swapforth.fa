@@ -593,30 +593,34 @@ CODE redraw
 \ ====================================================
 \ display graphics
 
-: {rectangle ( - w1 w2 )
+VARIABLE m1
+VARIABLE m2
+
+: {rectangle
 \ |7b Y1|7b Y0|1000|    |1bfill|3b C|7b X1|7b X0|
-0x8 0 ;
+0x8 m1 ! 0 m2 ! ;
 
-: r.x ( w1 w2 x0 x1 - w1 W2 )
-7 lshift or or ;
+: r.x
+7 lshift or m2 @ or m2 ! ;
 
-: r.y ( w1 w2 y0 y1 - W1 w2 )
+: r.y
 7 lshift or
 4 lshift
-rot or swap
-;
+m1 @ or m1 ! ;
 
-: r.color ( w1 w2 c - w1 W2)
-14 lshift or ;
+: r.color
+14 lshift m2 @ or m2 ! ;
 
-: r.fill ( BA - BA)
-0x1ffff and ;
+: r.fill
+m2 @ 0x1ffff and m2 ! ;
 
 : r.nofill
-r.fill 0x20000 or ;
+m1 @ r.fill 0x20000 or m2 ! ;
 
 : r.blue 4 r.color ;
-: end} g-new ;
+
+: end}
+  m1 @ m2 @ g-new ;
 
 \ ====================================================
 \ testing
