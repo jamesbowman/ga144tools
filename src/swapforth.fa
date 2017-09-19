@@ -731,6 +731,51 @@ begin
   while
     dup emit 1+
   repeat
+: rectangletest2
+begin
+0 \ color
+0 \ position
+31 for
+1111 emit
+ {rectangle
+    dup 127 over -
+    over over
+    r.y r.x
+    2 +
+    swap 1 + 7 and dup r.color swap
+    r.fill
+  end} drop
+  redraw
+  1 sleep
+next drop drop
+2222 emit
+\ delete
+1 30 for
+dup g-del 2 +
+redraw
+ 1 sleep
+next drop
+
+0 until
+;
+
+\: testdrawtime
+\0 0 10 for
+\ {rectangle
+\    dup 127 over -
+\    over over
+\    r.y r.x
+\    2 +
+\    swap 1 + 7 and dup r.color swap
+\    r.fill
+\  end} drop
+\next drop drop
+\begin
+\  1111 emit
+\  redraw
+\0 until
+\;
+
   
 \ \ 10000000000. 104348 33215 m*/
 
