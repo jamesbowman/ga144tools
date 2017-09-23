@@ -49,20 +49,30 @@ ns.
 This is enough time for GA144 to execute 8-32 instructions.
 }
 \end{frame}
+
+\begin{imageframe}{vga-design}
+\end{imageframe}
+
 \begin{imageframe}{DSC_3223.JPG}
 \note{
-More details and links are at
+\scriptsize
+
+More details at: \\
 \url{http://www.excamera.com/sphinx/article-ga144-vga.html}
 
-Source is at
-
+Source is at \\
 \url{https://github.com/jamesbowman/ga144tools/blob/master/src/vga.ga}
 }
 \end{imageframe}
 
 
 \begin{imageframe}{layout}
-\note{This is the layout}
+\note{
+This is the layout on the GA144.
+
+Each purple node 500-515 produces RGB pixels and sends them south. Blue nodes 400-415 collect their outputs and pass the pixel stream into the VGA timing generators 416 and 417. The color values pass up to the analog outputs 617, 717, 713. Nodes 417 and 317 drive the two synchronization signals.
+
+}
 \end{imageframe}
 
 \begin{imageframe}{DSC_3236.JPG}
@@ -78,7 +88,7 @@ Source is at
 \end{imageframe}
 
 \begin{imageframe}{DSC_3239.JPG}
-\note{CHECKER}
+\note{RANDOM}
 \end{imageframe}
 
 
