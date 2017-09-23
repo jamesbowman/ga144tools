@@ -6,8 +6,8 @@
 \usepackage{pgfpages}
 \setbeamertemplate{note page}[plain]
 \setbeamercolor{note page}{fg=black}
-\setbeameroption{show notes on second screen}
-%\setbeameroption{hide notes} % Only slides
+%\setbeameroption{show notes on second screen}
+\setbeameroption{hide notes} % Only slides
 
 % \usepackage[utf8]{inputenc} % utf8 file encoding
 % \usepackage[UTF8]{ctex}
@@ -78,6 +78,21 @@ Each purple node 500-515 produces RGB pixels and sends them south. Blue nodes 40
 \begin{imageframe}{DSC_3236.JPG}
 \note{This is RAMPS}
 \end{imageframe}
+
+\begin{frame}[fragile]
+\begin{verbatim}
+( x y -- bbbbbbggggggrrrrrr )
+
+    over @p and
+      32
+    over @p and
+      32
+    2* 2* 2*
+    2* 2* 2*
+    or
+\end{verbatim}
+\note{code for CHECKER}
+\end{frame}
 
 \begin{imageframe}{DSC_3237.JPG}
 \note{CHECKER}
