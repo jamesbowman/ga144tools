@@ -173,8 +173,16 @@ if __name__ == '__main__':
             lst(": %s" % defining)
             symbols["_" + defining] = prg.org
             ww = ww[2:]
-        for w in ww:
-            if re.match("^-?[0-9](x[[0-9a-f]+|[0-9]*)\.?$", w):
+
+        ww_iter = iter(zip(ww, ww[1:]+[None]))
+        for w, next_w in ww_iter:
+            if next_w == "allot":
+                HERE += int(w)
+                next(ww_iter)
+            elif next_w == ",":
+                c.extend([w])
+                next(ww_iter)
+            elif re.match("^-?[0-9](x[[0-9a-f]+|[0-9]*)\.?$", w):
                 if w.endswith('.'):
                     i = int(w[:-1], 0)
                     h = (i >> 18) & 0x3ffff
@@ -295,6 +303,13 @@ if __name__ == '__main__':
                 prg.resolve(cs.pop())
                 if w == "loop":
                     c.extend(["pop drop"])
+            elif w == "'":
+                word = next(ww_iter)[0]
+                if word in variables:
+                    addr = variables[word]
+                else:
+                    addr = symbols['_' + word]
+                c.extend(["@p call LIT", str(addr)])
             elif w in compilable:
                 c.extend(compilable[w])
             else:
