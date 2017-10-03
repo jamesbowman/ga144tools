@@ -63,14 +63,27 @@ class Program:
             sbits = [x << (7 - (i % 8)) for i,x in enumerate(bits)]
             bytes = [sum(sbits[i:i+8]) for i in range(0, len(sbits), 8)]
             wl = len(pp) - 1
-            assert 0 <= wl < 64
-            ab = array.array('B', [(0xff & flags) | wl] + bytes).tostring()
+            if pp.datablock:
+                size=[]
+            else:
+                assert 0 <= wl < 64
+                size=[(0xff & flags) | wl]
+            ab = array.array('B', size + bytes).tostring()
             return ab.ljust((len(ab) + 63) & ~63, chr(0xff))
 
         s = [bytecode(self.s[f]) for f in sorted(self.s)]
         padsize = (len(s) + 4095) & ~4095
         s = "".join(s).ljust(padsize, chr(0xff))
         return s
+
+class Block(list):
+    def __init__(self, obj=None, datablock=None):
+        super( Block, self ).__init__( obj or [] )
+        self.datablock=False
+        if type(obj) is Block:
+            self.datablock = obj.datablock
+        if datablock is not None:
+            self.datablock = datablock
 
 def cleanup(s):
     for l in s:
@@ -102,7 +115,7 @@ if __name__ == '__main__':
     def lst(s):
         listing.write(s + "\n")
 
-    c = []
+    c = Block()
     def process_code(c):
         n.symbols = symbols
         n.listing = []
@@ -110,7 +123,11 @@ if __name__ == '__main__':
 
         lst("(fragment %d)" % prg.org)
         lst("\n".join(n.listing[1:]))
-        pp = n.pump(None)
+        if c.datablock:
+            pp = Block(map(int, c), True)
+        else:
+            pp = Block(n.pump(None))
+
         bytesize = ((8 + 18 * len(pp) + 7) / 8)
         lst("%d bytes (%d words)\n" % (bytesize, len(pp)))
         return pp
@@ -126,24 +143,25 @@ if __name__ == '__main__':
             assert kind == "CODE"
             symbols["_" + blockname] = prg.org
             lst("CODE _%s" % blockname)
-            prg.append(process_code(c[1:]), flags)
+            x = process_code(Block(c[1:]))
+            prg.append(x, flags)
 
     for l in cleanup(p1.stdout):
         if '%FORTHLIKE%' in l:
             break
         if l.startswith("CODE") and c:
             code(c)
-            c = []
+            c = Block()
         c.append(l)
     code(c)
 
     # From here on code uses the forth-like syntax
     cs = []
-    c = []
+    c = Block()
     def newblock(c, flags = 0):
         if c:
             prg.append(process_code(c), flags)
-        return []
+        return Block()
     HERE = 0
     variables = {}
     compilable = {
@@ -260,7 +278,7 @@ if __name__ == '__main__':
                 begin = cs.pop()
                 if begin == prg.org and len(c) < 20:
                     cs.append((prg.org, len(c) + 8))
-                    c = ["a!", "jump begin2", ": begin", "@+", ": begin2"] + c
+                    c = Block(["a!", "jump begin2", ": begin", "@+", ": begin2"] + c)
                     c.extend([
                       "if begin",
                       "@+",
@@ -283,7 +301,7 @@ if __name__ == '__main__':
                 begin = cs.pop()
                 if begin == prg.org and len(c) < 20:
                     cs.append((prg.org, len(c) + 6))
-                    c = ["a! jump main", ": main"] + c
+                    c = Block( ["a! jump main", ": main"] + c )
                     c.extend([
                       "next main",
                       "@p call GO",
@@ -310,6 +328,8 @@ if __name__ == '__main__':
                 else:
                     addr = symbols['_' + word]
                 c.extend(["@p call LIT", str(addr)])
+            elif w == "data-block":
+                c.datablock=True
             elif w in compilable:
                 c.extend(compilable[w])
             else:
@@ -327,7 +347,7 @@ if __name__ == '__main__':
                     c = newblock(c)
                     if cs:
                         prg.resolve(cs.pop())
-            if len(c) > 54:
+            if len(c) > 54 and not c.datablock:
                 cs.append((prg.org, len(c) + 1))
                 c.extend([
                   "@p call GO",
