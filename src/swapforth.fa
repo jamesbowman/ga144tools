@@ -397,6 +397,22 @@ CODE c@
   ! ! @
   pop a!
 
+CODE ii                #inline #returns
+  call -!
+  pop dup push
+
+CODE j                #inline #returns
+  call -!
+  pop pop over
+  over push push
+
+CODE k                #inline #returns
+  call -!
+  a pop pop
+  pop dup a!
+  push push push
+  a over a!
+
 \ ====================================================
 \ display control
 \ ====================================================
