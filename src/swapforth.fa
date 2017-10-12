@@ -442,8 +442,8 @@ CODE g-del
   !b @p !b
     @p !
   !b @+ @p
-     @ !p a!
-  !b @b drop
+    a!
+  !b
   call DORETURN
 
 CODE redraw
@@ -454,8 +454,7 @@ CODE redraw
      @p !
      4
   !b @p !b
-     @ !p a!
-  @b drop
+     a!
   call DORETURN
 
 \ ====================================================
