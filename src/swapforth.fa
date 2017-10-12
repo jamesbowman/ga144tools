@@ -452,10 +452,20 @@ CODE redraw
      a @p a!
   !b @p !b @p
      @p !
-     4
+     5
   !b @p !b
      a!
   call DORETURN
+
+CODE >604
+  @p @p !b
+     EAST
+     a @p a!
+  !b @p !b
+     @p !
+  !b @p !b
+     a!
+  @+ call DORETURN
 
 \ ====================================================
 \ flash reads
