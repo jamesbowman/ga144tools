@@ -368,6 +368,23 @@ CODE sgn            #returns #inline
     0x1ffff
   and or
 
+
+CODE ii                #inline #returns
+  call -!
+  pop dup push
+
+CODE j                #inline #returns
+  call -!
+  pop pop over
+  over push push
+
+CODE k                #inline #returns
+  call -!
+  a pop pop
+  pop dup a!
+  push push push
+  a over a!
+
 \ ====================================================
 \ external RAM
 \ ====================================================
@@ -396,22 +413,6 @@ CODE c@
     call 506.c@
   ! ! @
   pop a!
-
-CODE ii                #inline #returns
-  call -!
-  pop dup push
-
-CODE j                #inline #returns
-  call -!
-  pop pop over
-  over push push
-
-CODE k                #inline #returns
-  call -!
-  a pop pop
-  pop dup a!
-  push push push
-  a over a!
 
 \ ====================================================
 \ display control
@@ -629,26 +630,26 @@ CODE @flash
 VARIABLE m1
 VARIABLE m2
 
-: {rectangle
+: {rect
 \ |7b Y1|7b Y0|1000|    |1bfill|3b C|7b X1|7b X0|
 0x8 m1 ! 0 m2 ! ;
 
-: r.x
+: rect.x
 7 lshift or m2 @ or m2 ! ;
 
-: r.y
+: rect.y
 7 lshift or
 4 lshift
 m1 @ or m1 ! ;
 
-: r.color
+: rect.color
 14 lshift m2 @ or m2 ! ;
 
-: r.fill
+: rect.fill
 m2 @ 0x1ffff and m2 ! ;
 
-: r.nofill
-m2 @ r.fill 0x20000 or m2 ! ;
+: rect.nofill
+m2 @ rect.fill 0x20000 or m2 ! ;
 
 : end}
   m1 @ m2 @ g-new ;
@@ -727,20 +728,20 @@ second @
 10 t1 !
 
 5 for
-{rectangle
-10 30 r.x
+{rect
+10 30 rect.x
 t1 @ dup 15 + t1 !
-dup 7 + r.y
+dup 7 + rect.y
 
 dup 1 and if
-  r.fill
+  rect.fill
 else
-  r.nofill
+  rect.nofill
 then
 
 1 rshift
 
-red r.color
+red rect.color
 end} drop ( id )
 next
 drop ( seconds )
@@ -752,20 +753,20 @@ minute @
 10 t1 !
 
 5 for
-{rectangle
-40 60 r.x
+{rect
+40 60 rect.x
 t1 @ dup 15 + t1 !
-dup 7 + r.y
+dup 7 + rect.y
 
 dup 1 and if
-  r.fill
+  rect.fill
 else
-  r.nofill
+  rect.nofill
 then
 
 1 rshift
 
-blue r.color
+blue rect.color
 end} drop ( id )
 next
 drop ( minutes )
@@ -777,20 +778,20 @@ hour @
 10 t1 !
 
 4 for
-{rectangle
-70 90 r.x
+{rect
+70 90 rect.x
 t1 @ dup 15 + t1 !
-dup 7 + r.y
+dup 7 + rect.y
 
 dup 1 and if
-  r.fill
+  rect.fill
 else
-  r.nofill
+  rect.nofill
 then
 
 1 rshift
 
-purple r.color
+purple rect.color
 end} drop ( id )
 next
 drop ( hour )
@@ -805,8 +806,8 @@ next drop
 : clock
 111 222
 1111 emit
-8 hour !
-55 minute !
+0 hour !
+0 minute !
 0 second !
 
 begin
@@ -860,11 +861,11 @@ VARIABLE color
 : colortest
 0 color !
 begin
-{rectangle
-  0 127 r.y
-  0 127 r.x
-  r.fill
-  color @ r.color
+{rect
+  0 127 rect.y
+  0 127 rect.x
+  rect.fill
+  color @ rect.color
  end}
  redraw
  2 sleep
@@ -884,13 +885,13 @@ begin
 0 \ position
 31 for
 1111 emit
- {rectangle
+ {rect
     dup 127 over -
     over over
-    r.y r.x
+    rect.y rect.x
     2 +
-    swap 1 + 7 and dup r.color swap
-    r.fill
+    swap 1 + 7 and dup rect.color swap
+    rect.fill
   end} drop
   redraw
   1 sleep
@@ -908,13 +909,13 @@ next drop
 
 \: testdrawtime
 \0 0 10 for
-\ {rectangle
+\ {rect
 \    dup 127 over -
 \    over over
-\    r.y r.x
+\    rect.y rect.x
 \    2 +
-\    swap 1 + 7 and dup r.color swap
-\    r.fill
+\    swap 1 + 7 and dup rect.color swap
+\    rect.fill
 \  end} drop
 \next drop drop
 \begin
