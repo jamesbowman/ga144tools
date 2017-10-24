@@ -185,6 +185,18 @@ include(romSPI.hdr)
       @p a! . .
     ! @b ! ;
 
+: erase
+    @b push @b
+: loop
+    dup call addr
+    @p ! ! @p
+      @p a! dup
+      or !
+    ! @p . +
+    1
+    next loop
+   ;
+
 \ The three banks for the RAM
 ---------------------------- 505 ----------------------------
 \ attr: render color .3 .3 0
