@@ -414,6 +414,14 @@ CODE c@
   ! ! @
   pop a!
 
+CODE erase               #inline #returns
+  @+ a push @p
+    SOUTH
+  a! over @p
+    call 506.erase
+  ! ! !
+  pop a! @+
+
 \ ====================================================
 \ display control
 \ ====================================================
