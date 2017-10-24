@@ -723,6 +723,78 @@ next
 update} ;
 
 \ ====================================================
+\ text
+\ ====================================================
+
+include(font.fs)
+
+: @font ' font-5x7 6 lshift + @flash ; (TODO: test
+
+variable line-buf
+21 allot
+variable line \ character line on the display
+variable color \ pixel color
+black @ color !
+
+: show-text
+\ render contents of `line-buff' at `line'
+\ must be called from update mode
+6 for \ y
+ line @ 7 * 6 II - + dup set-row send-primitives
+ 0 ( coord
+ 20 for \ char
+    20 II - line-buf + @
+    dup if
+      4 for \ x
+         dup 5 * 4 II - + @font \ TODO: read 5 bytes at a time from flash
+         6 K - lshift 0x80 and if
+           over black pixel
+         then
+         swap 1 + swap
+        next
+    else
+        swap 5 + swap
+    then
+      drop
+  next
+   drop (coord)
+   end-row
+next
+;
+
+: clear-line-buf
+line-buf 21 erase ;
+
+: show-line-buf
+0 20 for
+  dup line-buf + @ emit
+  1 +
+next ;
+
+: erase-line ( line - )
+\ clear text from LINE. Must be called from update mode
+\ TODO: test
+7 *
+6 for
+  dup II +
+   dup set-row send-primitives end-row
+  next
+ drop ;
+
+: emit-string ( ...string - )
+ for emit next ;
+
+VARIABLE cursor
+: type ( string - )
+for
+  \cursor dup @ 1 + dup swap !
+  cursor @ 1 + dup cursor ! line-buf + !
+next ;
+
+: cr
+ line dup @ 1 + swap !
+ 0 cursor ! ;
+
 \ testing
 \ ====================================================
 
@@ -905,6 +977,7 @@ include(easter.fs)
 : _del dup emit g-del redraw 4 sleep ;
 : graphicstest
 \ Animate the display of Mark's original image
+begin
   260104 81792 _show
   131384 139283 _show
   129352 90004 _show
@@ -912,7 +985,8 @@ include(easter.fs)
   503 49791 _show
   129527 33343 _show
   1111 emit
-  _del _del _del _del
+  _del _del _del _del  _del \_del
+0 until
  ;
 
 
