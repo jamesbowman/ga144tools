@@ -200,6 +200,19 @@ if __name__ == '__main__':
             elif next_w == ",":
                 c.extend([w])
                 next(ww_iter)
+            elif w == 's"':
+                s = []
+                while True:
+                    x = next(ww_iter)[0]
+                    if x[-1] == '"':
+                        s.append(x[:-1])
+                        break
+                    else:
+                        s.append(x)
+                s = " ".join(s)
+                for char in reversed(s):
+                    c.extend(["@p call LIT", str(ord(char))]) #TODO: can overflow words
+                c.extend(["@p call LIT", str(len(s)-1)])
             elif re.match("^-?[0-9](x[[0-9a-f]+|[0-9]*)\.?$", w):
                 if w.endswith('.'):
                     i = int(w[:-1], 0)
@@ -360,6 +373,9 @@ if __name__ == '__main__':
 
     # Put a copy of the 'boot' fragment at zero
     prg.s[0] = prg.s[symbols['_boot']]
-    print max(prg.s), 'fragments'
-
+    f = open("flash.el", "w")
+    for n, c in prg.s.items():
+        f.write("(_fragment {} {} {})\n".format( n, (0xff & c[0]) | len(c[1]), " ".join( map(str, c[1] ))))
+    f.write( "(_boot {})\n".format( symbols['_boot'] ) )
+    f.close()
     open("image", "wb").write(prg.binary())
