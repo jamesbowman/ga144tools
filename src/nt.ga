@@ -139,7 +139,7 @@ include(romSPI.hdr)
                             \ fetch byte address 0-383
                             \ set A to bank
                             \ o to offset 0-63
-    2/ dup 2/
+    dup 2/
     2/ 2/ 2/
     2/ 2/ call tab
       WEST                  \ 3 bank nodes
