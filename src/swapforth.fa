@@ -744,7 +744,7 @@ black @ color !
 \ render contents of `line-buff' at `line'
 \ must be called from update mode
 6 for \ y
- line @ 7 * 6 II - + dup set-row send-primitives
+ line @ 8 * 6 II - + dup set-row send-primitives
  0 ( coord
  20 for \ char
     20 II - line-buf + @
@@ -759,7 +759,7 @@ black @ color !
     else
         swap 5 + swap
     then
-      drop
+      drop 1 +
   next
    drop (coord)
    end-row
