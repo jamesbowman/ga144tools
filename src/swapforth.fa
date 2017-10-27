@@ -1056,7 +1056,6 @@ next drop
 
 
 : helloworld
-  260599 16896 g-new \ bug: need to have at least one primitive loaded
   {clear-display}
   clear-line-buf
   8 line !
@@ -1066,7 +1065,6 @@ next drop
 ;
 
 : textdemo
- 260599 16896 g-new \ bug
  {clear-display}
  reset-text
  15 line !
@@ -1113,23 +1111,24 @@ test-shapes redraw
 3 cursor !
 5 line !
 clear-line-buf
-s" "hello world" type 
+s" hello world" type
 _text+shapes_2 ;
 
 : showfont
-260599 16896 g-new  \for bug
+0xaaaa emit
 redraw
 reset-text
-5 line !
+0 line !
 {update
 0
-10 for
- 21 for
+15 for
+ 19 for
   dup 0 type 1 +
  next
  render-text cr
 next
 update}
+0xbbbbb emit \ 1.266 seconds
 ;
 
 : ramtest
