@@ -715,7 +715,7 @@ update} ;
 
 include(font.fs)
 
-: @font ' font-5x7 6 lshift + @flash ; (TODO: test
+: @font 'f font-5x7 + @flash ;
 
 variable line-buf
 21 allot
@@ -734,7 +734,8 @@ black @ color !
     dup if
       4 for \ x
       \ TODO: reorganize font data to minimize reads
-         dup 5 * 4 I - + @font
+         dup 5 * 4 I - +
+          'f font-5x7 + @flash \ inline @font
          6 K - lshift 0x80 and if
            over black pixel
          then

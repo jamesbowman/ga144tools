@@ -358,12 +358,14 @@ if __name__ == '__main__':
                 fs.pop(0)
                 if w == "loop":
                     c.extend(["pop drop"])
-            elif w == "'":
+            elif w == "'" or w == "'f":
                 word = next(ww_iter)[0]
                 if word in variables:
                     addr = variables[word]
                 else:
                     addr = symbols['_' + word]
+                if w == "'f":
+                    addr = addr<<6
                 c.extend(["@p call LIT", str(addr)])
             elif w == "data-block":
                 c.datablock=True
