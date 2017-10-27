@@ -368,23 +368,6 @@ CODE sgn            #returns #inline
     0x1ffff
   and or
 
-
-CODE ii                #inline #returns
-  call -!
-  pop dup push
-
-CODE j                #inline #returns
-  call -!
-  pop pop over
-  over push push
-
-CODE k                #inline #returns
-  call -!
-  a pop pop
-  pop dup a!
-  push push push
-  a over a!
-
 \ ====================================================
 \ external RAM
 \ ====================================================
@@ -711,14 +694,14 @@ m2 @ rect.fill 0x20000 or m2 ! ;
 : _update-rows  \ equivalent to 'redraw'
 {update
 127 for
- 128 ii - update-row
+ 128 i - update-row
 next
 update} ;
 
 : _update-rows2  \ equivalent to 'redraw'
 {update
 127 for
- 128 ii - dup set-row send-primitives
+ 128 i - dup set-row send-primitives
  \    dup 50 > if
  \    green 50 pixel
  \    then
@@ -744,13 +727,14 @@ black @ color !
 \ render contents of `line-buff' at `line'
 \ must be called from update mode
 6 for \ y
- line @ 8 * 6 II - + dup set-row send-primitives
+ line @ 8 * 6 I - + dup set-row send-primitives
  0 ( coord
  20 for \ char
-    20 II - line-buf + @
+    20 I - line-buf + @
     dup if
       4 for \ x
-         dup 5 * 4 II - + @font \ TODO: read 5 bytes at a time from flash
+      \ TODO: reorganize font data to minimize reads
+         dup 5 * 4 I - + @font
          6 K - lshift 0x80 and if
            over black pixel
          then
@@ -780,7 +764,7 @@ next ;
 \ TODO: test
 7 *
 6 for
-  dup II +
+  dup I +
    dup set-row send-primitives end-row
   next
  drop ;
@@ -1090,7 +1074,7 @@ s" Hello Mark " type
 redraw
 {update
  8 for
-   II 2 * line !
+   I 2 * line !
    render-text
  next
 update}
@@ -1132,10 +1116,11 @@ update}
 ;
 
 : ramtest
-191 for ii dup ! next
+191 for i dup ! next
 60 20 erase
-191 for ii @ emit next
+191 for i @ emit next
 ;
+
 
 \: testdrawtime
 \0 0 10 for

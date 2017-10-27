@@ -168,6 +168,7 @@ if __name__ == '__main__':
 
     # From here on code uses the forth-like syntax
     cs = []
+    fs = []
     c = Block()
     def newblock(c, flags = 0):
         if c:
@@ -175,12 +176,27 @@ if __name__ == '__main__':
         return Block()
     HERE = 0
     variables = {}
+    _get_third=["call -!",
+                "a pop pop",
+                "pop dup a!",
+                "push push push",
+                "a over a!" ]
     compilable = {
-        "i": [
+        "DO_i": [
             "call -!",
             "pop pop over",
             "over push push",
             "over - . +" ],
+        "FOR_i": [
+            "call -!",
+            "pop dup push"],
+        "FOR-FOR_j": [
+            "call -!",
+            "pop pop over",
+            "over push push"],
+        "FOR-DO_j": _get_third,
+        "FOR-FOR-FOR_k": _get_third,
+        # TODO: other FOR/DO loop combinations
         ">r": [
             "call TO_R",
             "@+" ],
@@ -246,12 +262,14 @@ if __name__ == '__main__':
                 cs.append(prg.org)
 
             elif w == "for":
+                fs = ["for"] + fs
                 cs.append((prg.org, len(c) + 2))
                 c.extend(["push @+", "@p call GO", "0x3ffff"])
                 c = newblock(c)
                 prg.resolve(cs.pop())
                 cs.append(prg.org)
             elif w == "do":
+                fs = ["do"] + fs
                 cs.append((prg.org, len(c) + 4))
                 c.extend(["- @+ dup", "push . + ", "push @+", "@p call GO", "0x3ffff"])
                 c = newblock(c)
@@ -337,6 +355,7 @@ if __name__ == '__main__':
                       ])
                 c = newblock(c)
                 prg.resolve(cs.pop())
+                fs.pop(0)
                 if w == "loop":
                     c.extend(["pop drop"])
             elif w == "'":
@@ -348,6 +367,14 @@ if __name__ == '__main__':
                 c.extend(["@p call LIT", str(addr)])
             elif w == "data-block":
                 c.datablock=True
+            elif w in ("i", "j", "k"):
+                looptype = reversed(fs[:("i", "j", "k").index(w)+1])
+                k = "-".join(looptype).upper()+"_"+w
+                if k in compilable:
+                    c.extend(compilable[k])
+                else:
+                    print "Error: {} is unimplemented in loops: {}".format( w, " > ".join(reversed(looptype)))
+                    exit(0)
             elif w in compilable:
                 c.extend(compilable[w])
             else:
