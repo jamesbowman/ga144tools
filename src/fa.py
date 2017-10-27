@@ -95,6 +95,17 @@ def cleanup(s):
         if l:
             yield l
 
+def tokenize(s):
+    tokens = []
+    while s:
+        b, m, s = s.partition('s" ')
+        tokens.extend([w.lower() for w in b.split()])
+        if m == 's" ':
+            tokens.append('s"')
+            ss, _, s =  s.partition('"')
+            tokens.append(ss)
+    return tokens
+
 if __name__ == '__main__':
     # Pick up fixed symbols from nt.ga node 605
     g = ga144.GA144()
@@ -179,7 +190,8 @@ if __name__ == '__main__':
             "  @+ !p", ],
     }
     for l in cleanup(p1.stdout):
-        ww = [w.lower() for w in l.split()]
+        ww = tokenize(l)
+
         if ww[0] == "variable":
             variables[ww[1]] = HERE
             HERE += 2
@@ -201,18 +213,11 @@ if __name__ == '__main__':
                 c.extend([w])
                 next(ww_iter)
             elif w == 's"':
-                s = []
-                while True:
-                    x = next(ww_iter)[0]
-                    if x[-1] == '"':
-                        s.append(x[:-1])
-                        break
-                    else:
-                        s.append(x)
-                s = " ".join(s)
+                s = next_w
                 for char in reversed(s):
                     c.extend(["@p call LIT", str(ord(char))]) #TODO: can overflow words
                 c.extend(["@p call LIT", str(len(s)-1)])
+                next(ww_iter)
             elif re.match("^-?[0-9](x[[0-9a-f]+|[0-9]*)\.?$", w):
                 if w.endswith('.'):
                     i = int(w[:-1], 0)
