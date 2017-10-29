@@ -140,6 +140,15 @@ CODE sleep
   drop a! @+
  call DORETURN
 
+CODE read-buttons
+  call -!
+  a @p a! @p
+    EAST
+    4
+  ! @
+ over a!
+ call DORETURN
+
 CODE +              #returns #inline
   @+ . +
 
@@ -793,6 +802,11 @@ next ;
  0 cursor !
  clear-line-buf
  ;
+
+: button0? 0x20000 and ;
+: button1? 0x10000 and ;
+: button2? 0x8000 and ;
+
 \ ====================================================
 \ testing
 \ ====================================================
@@ -1114,6 +1128,16 @@ reset-text
 next
 update}
 0xbbbbb emit \ 1.266 seconds
+;
+
+: test-buttons
+begin
+ read-buttons
+ dup button0? if 0 emit then
+ dup button1? if 1 emit then
+ button2? if 2 emit then
+ 4 sleep
+ 0 until
 ;
 
 : ramtest
