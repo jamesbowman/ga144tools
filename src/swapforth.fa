@@ -1130,6 +1130,18 @@ update}
 0xbbbbb emit \ 1.266 seconds
 ;
 
+: i->s ( i  - ...s )
+\ convert integer to string
+   0 swap
+   begin
+       0 10  um/mod
+       swap 48 +
+       rot 1 +
+       rot dup
+   0= until
+   drop 1-
+;
+
 : test-buttons
 begin
  read-buttons
@@ -1163,6 +1175,27 @@ begin
 \  redraw
 \0 until
 \;
+
+: show-initial-time
+{clear-display}
+reset-text
+ s"  seconds: " type initial-sec i->s type render-text cr
+\ s"  minutes: " type initial-min i->s type render-text cr
+\ s"    hours: " type initial-hour i->s type render-text cr
+\ s"    month: " type initial-mon i->s type render-text cr
+\ s" week day: " type initial-wday i->s type render-text cr
+\ s" year day: " type initial-yday i->s type render-text cr
+\ s"    year: " type initial-year i->s type render-text
+;
+
+: test-show-int
+ {clear-display}
+ reset-text
+ s" -->" type
+ 12387 i->s type
+ s" <--" type
+ render-text
+ ;
 
   
 \ \ 10000000000. 104348 33215 m*/

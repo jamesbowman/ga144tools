@@ -3,6 +3,7 @@ import ga144
 import array
 import copy
 import re
+import time
 from subprocess import Popen, PIPE
 
 class Node(ga144.Node):
@@ -117,7 +118,9 @@ if __name__ == '__main__':
     symbols = copy.copy(g.node['605'].symbols)
     symbols.update(g.node['606'].symbols)
     # print "\n".join(sorted(symbols))
-
+    now = time.localtime()
+    time_words = { "initial-" + x : str( now.__getattribute__( "tm_" + x) )
+                   for x in [ "sec", "min", "hour", "mon", "wday", "yday", "year" ] }
     n = Node('605')
     n.chip = g
     prg = Program()
@@ -379,6 +382,8 @@ if __name__ == '__main__':
                     exit(0)
             elif w in compilable:
                 c.extend(compilable[w])
+            elif w in time_words:
+                c.extend(["@p call LIT", time_words[w]])
             else:
                 (flags, code) = prg.s[symbols["_" + w]]
                 if flags & 0x100:
