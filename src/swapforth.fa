@@ -122,20 +122,20 @@ CODE emit
    1
   ! a! @+
 
-\ CODE wait
-\   @+ a push @p
-\      EAST
-\   a! @p !
-\      2
-\   over ! !
-\   @ pop a!
-\  call DORETURN
+CODE wait
+  call -!
+  a @p a! @p
+    EAST
+    3
+  ! @
+ over a!
+ call DORETURN
 
 CODE sleep
   a @p a! @p
     EAST
     2
-  ! dup !
+  !
   over ! @
   drop a! @+
  call DORETURN
@@ -807,6 +807,34 @@ next ;
 : button1? 0x10000 and ;
 : button2? 0x8000 and ;
 
+
+VARIABLE second
+VARIABLE minute
+VARIABLE hour
+
+variable 'button1
+variable 'button2
+variable 'time
+: noop ;
+
+: execute'button1 'button1 @ execute ;
+: execute'button2 'button2 @ execute ;
+: execute'time 'time @ execute ;
+
+: event-loop
+0
+begin
+ wait
+ dup if
+  dup button1? if execute'button1 then
+      button2? if execute'button2 then
+ else
+  drop execute'time
+ then
+0 until
+\ ' event-loop execute
+; 
+
 \ ====================================================
 \ testing
 \ ====================================================
@@ -973,6 +1001,24 @@ update-clock-display
 16 sleep
 1 emit
 0 until
+;
+
+: test-button1 1111 emit ;
+: test-button2 2222 emit ;
+
+: watch-main
+' update-clock-display 'update-display !
+
+ initial-hour hour !
+ initial-min minute !
+ initial-sec second !
+
+' test-button1 'button1 !
+' test-button2 'button2 !
+
+' tick1s 'time !
+
+event-loop
 ;
 
 include(easter.fs)
