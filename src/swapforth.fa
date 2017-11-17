@@ -149,6 +149,14 @@ CODE read-buttons
  over a!
  call DORETURN
 
+CODE joyy
+  a @p a! @p
+    EAST
+    5
+  ! over !
+  @ over a!
+  call DORETURN
+
 CODE +              #returns #inline
   @+ . +
 
@@ -717,6 +725,15 @@ update} ;
  end-row
 next
 update} ;
+
+
+\ ====================================================
+\ joystick
+\ ====================================================
+
+: joyy-calib 0 joyy drop ;
+: joyy-sample 1 joyy ;
+: joyy-delta 2 joyy ;
 
 \ ====================================================
 \ text
