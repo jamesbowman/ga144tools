@@ -1,4 +1,5 @@
 import sys
+import re
 import time
 import struct
 from subprocess import Popen, PIPE
@@ -159,7 +160,7 @@ class Node():
     def pass1_term(self, n):
         if n in self.symbols:
             return self.symbols[n]
-        if '.' in n:
+        if re.search(r'^[0-9]{3}\.', n):
             # handle a symbol in another node e.g. "605.emit"
             (n, sym) = n.split('.')
             return self.chip.node[n].symbols[sym]

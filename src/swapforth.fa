@@ -122,23 +122,40 @@ CODE emit
    1
   ! a! @+
 
-\ CODE wait
-\   @+ a push @p
-\      EAST
-\   a! @p !
-\      2
-\   over ! !
-\   @ pop a!
-\  call DORETURN
+CODE wait
+  call -!
+  a @p a! @p
+    EAST
+    3
+  ! @
+ over a!
+ call DORETURN
 
 CODE sleep
   a @p a! @p
     EAST
     2
-  ! dup !
+  !
   over ! @
   drop a! @+
  call DORETURN
+
+CODE read-buttons
+  call -!
+  a @p a! @p
+    EAST
+    4
+  ! @
+ over a!
+ call DORETURN
+
+CODE joyy
+  a @p a! @p
+    EAST
+    5
+  ! over !
+  @ over a!
+  call DORETURN
 
 CODE +              #returns #inline
   @+ . +
@@ -397,9 +414,18 @@ CODE c@
   ! ! @
   pop a!
 
+CODE erase               #inline #returns
+  @+ a push @p
+    SOUTH
+  a! over @p
+    call 506.erase
+  ! ! !
+  pop a! @+
+
+\ ====================================================
 \ display control
 \ ====================================================
-CODE new
+CODE g-new
   @p @p !b    \set a
      EAST     \west in 605
      a @p a!
@@ -415,18 +441,47 @@ CODE new
   !b
   call DORETURN
 
-CODE update
-  call -! \ what if there is nothing on the stack when -! is called?
+CODE g-del
   @p @p !b
      EAST
      a @p a!
   !b @p !b @p
      @p !
-     4
-  !b @p !b   \send 4
-     @ !p a!
-  @b
+     3
+  !b @p !b
+    @p !
+  !b @+ @p
+    a!
+  !b
   call DORETURN
+
+CODE redraw
+  @p @p !b
+     EAST
+     a @p a!
+  !b @p !b @p
+     @p !
+     5
+  !b @p !b
+     a!
+  call DORETURN
+
+CODE >604
+  @p @p !b
+     EAST
+     a @p a!
+  !b @p !b
+     @p !
+  !b @p !b
+     a!
+  @+ call DORETURN
+
+\ ====================================================
+\ flash reads
+\ ====================================================
+
+CODE @flash
+   - call GO
 
 %FORTHLIKE%
 
@@ -576,6 +631,238 @@ CODE update
 : bounds
   over + swap ;
 
+
+\ ====================================================
+\ display graphics
+
+VARIABLE m1
+VARIABLE m2
+VARIABLE line
+
+: {rect
+\ |7b Y1|7b Y0|1000|    |1bfill|3b C|7b X1|7b X0|
+0x8 m1 ! 0 m2 ! ;
+
+: rect.x
+7 lshift or m2 @ or m2 ! ;
+
+: rect.y
+7 lshift or
+4 lshift
+m1 @ or m1 ! ;
+
+: rect.color
+14 lshift m2 @ or m2 ! ;
+
+: rect.fill
+m2 @ 0x1ffff and m2 ! ;
+
+: rect.nofill
+m2 @ rect.fill 0x20000 or m2 ! ;
+
+: end}
+  m1 @ m2 @ g-new ;
+
+: black 0 ;
+: red 1 ;
+: green 2 ;
+: yellow 3 ;
+: blue 4 ;
+: purple 5 ;
+: green 6 ;
+: white 7 ;
+
+: {update 4 >604
+2 >604 ( reset )
+;
+
+: update} 0 >604 ;
+
+: update-row ( row - )
+ ( equivalent to:  set-row send-primitives end-row )
+ 3 lshift 3 or >604 ;
+
+: set-row ( row - )
+ 3 lshift 4 or >604 ;
+
+: end-row ( row - )
+ 1 + 3 lshift 5 or >604 ;
+
+: send-primitives ( - )
+ ( updates graphics for the current row )
+ 6 >604 ;
+
+: pixel.color
+ 14 lshift m1 ! ;
+: pixel.coord
+ 4 lshift m2 ! ;
+: send-pixel
+ 0x20002 m1 @ or m2 @ or >604 ;
+: pixel ( coord color - )
+\  |1|3b color|000|7b coord|0010|
+ 14 lshift swap 4 lshift 0x20002 or or >604 ;
+
+: black-pixel ( coord - )
+ 2* 2* 2* 2* 0x20002 or >604 ;
+
+: {clear-display}
+{update 7 >604 update} ;
+
+: clear-display
+ 7 >604 ;
+
+: _update-rows  \ equivalent to 'redraw'
+{update
+127 for
+ 128 i - update-row
+next
+update} ;
+
+: _update-rows2  \ equivalent to 'redraw'
+{update
+127 for
+ 128 i - dup set-row send-primitives
+ \    dup 50 > if
+ \    green 50 pixel
+ \    then
+ end-row
+next
+update} ;
+
+
+\ ====================================================
+\ joystick
+\ ====================================================
+
+: joyy-calib 0 joyy drop ;
+: joyy-sample 1 joyy ;
+: joyy-delta 2 joyy ;
+
+\ ====================================================
+\ text
+\ ====================================================
+
+include(font.fs)
+
+: @font 'f font-5x7 + @flash ;
+
+variable line-buf
+21 allot
+variable line \ character line on the display
+variable color \ pixel color
+black @ color !
+
+: render-text
+\ render contents of `line-buff' at `line'
+\ must be called from update mode
+6 for \ y
+  line @ 2* 2* 2* 6 I - + dup set-row send-primitives
+  0 \ coord
+  20 for \ char
+    20 I - line-buf + @
+    dup if
+      7 * 6 J - +
+      'f font-5x7 + @flash \ inlined @font   [coord font]
+      \ 4 for \ x   unrolled loop
+        dup
+        0x20 and \ [coord font pixel?]
+        if
+          over
+          2* 2* 2* 2* 0x20002 or >604 \ inlined black-pixel
+        then
+        2* swap 1+ swap
+      \ next
+        dup 0x20 and if over 2* 2* 2* 2* 0x20002 or >604 then 2* swap 1+ swap
+        dup 0x20 and if over 2* 2* 2* 2* 0x20002 or >604 then 2* swap 1+ swap
+        dup 0x20 and if over 2* 2* 2* 2* 0x20002 or >604 then 2* swap 1+ swap
+        dup 0x20 and if over 2* 2* 2* 2* 0x20002 or >604 then
+        drop \ font
+        1+
+    else
+      drop 5 +
+    then
+    1+
+  next
+  drop \ coord
+  end-row
+next
+;
+
+: clear-line-buf
+line-buf 21 erase ;
+
+: show-line-buf
+0 20 for
+  dup line-buf + @ emit
+  1 +
+next ;
+
+: erase-line ( line - )
+\ clear text from LINE. Must be called from update mode
+\ TODO: test
+7 *
+6 for
+  dup I +
+   dup set-row send-primitives end-row
+  next
+ drop ;
+
+: emit-string ( ...string - )
+ for emit next ;
+
+VARIABLE cursor
+: type ( string - )
+for
+  \cursor dup @ 1 + dup swap !
+  cursor @ 1 + dup cursor ! line-buf + !
+next ;
+
+: cr
+ line dup @ 1 + swap !
+ 0 cursor !
+ clear-line-buf ;
+
+: update-text
+{update render-text update} ;
+
+: reset-text
+ 0 line !
+ 0 cursor !
+ clear-line-buf
+ ;
+
+: button0? 0x20000 and ;
+: button1? 0x10000 and ;
+: button2? 0x8000 and ;
+
+
+VARIABLE second
+VARIABLE minute
+VARIABLE hour
+
+variable 'button1
+variable 'button2
+variable 'time
+: noop ;
+
+: execute'button1 'button1 @ execute ;
+: execute'button2 'button2 @ execute ;
+: execute'time 'time @ execute ;
+
+: event-loop
+0
+begin
+ wait
+ dup if
+  dup button1? if execute'button1 then
+      button2? if execute'button2 then
+ else
+  drop execute'time
+ then
+0 until
+\ ' event-loop execute
+; 
+
 \ ====================================================
 \ testing
 \ ====================================================
@@ -629,17 +916,361 @@ CODE update
   next
   ;
 
+VARIABLE second
+VARIABLE minute
+VARIABLE hour
+
+VARIABLE t1
+
+: update-clock-display
+\ seconds
+second @
+10 t1 !
+
+5 for
+{rect
+10 30 rect.x
+t1 @ dup 15 + t1 !
+dup 7 + rect.y
+
+dup 1 and if
+  rect.fill
+else
+  rect.nofill
+then
+
+1 rshift
+
+red rect.color
+end} drop ( id )
+next
+drop ( seconds )
+
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+\minutes
+
+minute @
+10 t1 !
+
+5 for
+{rect
+40 60 rect.x
+t1 @ dup 15 + t1 !
+dup 7 + rect.y
+
+dup 1 and if
+  rect.fill
+else
+  rect.nofill
+then
+
+1 rshift
+
+blue rect.color
+end} drop ( id )
+next
+drop ( minutes )
+
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+\hours
+
+hour @
+10 t1 !
+
+4 for
+{rect
+70 90 rect.x
+t1 @ dup 15 + t1 !
+dup 7 + rect.y
+
+dup 1 and if
+  rect.fill
+else
+  rect.nofill
+then
+
+1 rshift
+
+purple rect.color
+end} drop ( id )
+next
+drop ( hour )
+
+redraw
+1 16 for
+dup g-del 2 +
+next drop
+
+;
+
+: clock
+111 222
+1111 emit
+0 hour !
+0 minute !
+0 second !
+
+begin
+
+second @ 1 + dup second !
+60 = if
+  minute @ 1 + dup minute !
+  60 = if
+    hour @ 1 + dup hour !
+      24 = if
+         0 hour !
+    then
+  0 minute !
+  then
+
+0 second !
+then
+update-clock-display
+16 sleep
+1 emit
+0 until
+;
+
+: test-button1 1111 emit ;
+: test-button2 2222 emit ;
+
+: watch-main
+' update-clock-display 'update-display !
+
+ initial-hour hour !
+ initial-min minute !
+ initial-sec second !
+
+' test-button1 'button1 !
+' test-button2 'button2 !
+
+' tick1s 'time !
+
+event-loop
+;
+
 include(easter.fs)
 
 : boot
   100 200 300
+: sleeptest
+0 begin
+  1 + dup emit
+  1 sleep
+  0 until
+ ;
 
-  110 100
+: _show g-new redraw 4 sleep ;
+: _del dup emit g-del redraw 4 sleep ;
+: graphicstest
+\ Animate the display of Mark's original image
+begin
+  260104 81792 _show
+  131384 139283 _show
+  129352 90004 _show
+  260599 16896 _show
+  503 49791 _show
+  129527 33343 _show
+  1111 emit
+  _del _del _del _del  _del \_del
+0 until
+ ;
+
+
+VARIABLE color
+: colortest
+0 color !
+begin
+{rect
+  0 127 rect.y
+  0 127 rect.x
+  rect.fill
+  color @ rect.color
+ end}
+ redraw
+ 2 sleep
+ g-del
+ color dup @ 1 + 7 and swap ! 
+ 0 until
+;
+
   begin
     2dup <>
   while
     dup emit 1+
   repeat
+: rectangletest2
+begin
+0 \ color
+0 \ position
+31 for
+1111 emit
+ {rect
+    dup 127 over -
+    over over
+    rect.y rect.x
+    2 +
+    swap 1 + 7 and dup rect.color swap
+    rect.fill
+  end} drop
+  redraw
+  1 sleep
+next drop drop
+2222 emit
+\ delete
+1 30 for
+dup g-del 2 +
+redraw
+ 1 sleep
+next drop
+
+0 until
+;
+
+
+: helloworld
+  {clear-display}
+  clear-line-buf
+  8 line !
+  5 cursor !
+  s" Hello World!" type
+  update-text
+;
+
+: textdemo
+ {clear-display}
+ reset-text
+ 15 line !
+ {update
+  s" Monday October 23" type render-text cr
+  s" 8:51pm" type render-text cr
+ update} 
+ ;
+
+: test-shapes
+  260104 81792 g-new
+  131384 139283 g-new
+  129352 90004 g-new
+  260599 16896 g-new
+;
+
+: hellomark
+{clear-display}
+260599 16896 g-new
+clear-line-buf
+3 cursor !
+s" Hello Mark " type
+redraw
+{update
+ 8 for
+   I 2 * line !
+   render-text
+ next
+update}
+;
+
+: _text+shapes_3
+\ split into multiple words because of code overflow
+\ probably because of the way strings are implemented with s"
+s" 1234567890" type
+update-text ;
+: _text+shapes_2
+update-text cr
+10 line !
+_text+shapes_3 ;
+: text+shapes
+{clear-display}
+test-shapes redraw
+3 cursor !
+5 line !
+clear-line-buf
+s" hello world" type
+_text+shapes_2 ;
+
+: showfont
+0xaaaa emit
+redraw
+reset-text
+0 line !
+{update
+0
+15 for
+ 19 for
+  dup 0 type 1 +
+ next
+ render-text cr
+next
+update}
+0xbbbbb emit \ 1.266 seconds
+;
+
+: i->s ( i  - ...s )
+\ convert integer to string
+   0 swap
+   begin
+       0 10  um/mod
+       swap 48 +
+       rot 1 +
+       rot dup
+   0= until
+   drop 1-
+;
+
+: test-buttons
+begin
+ read-buttons
+ dup button0? if 0 emit then
+ dup button1? if 1 emit then
+ button2? if 2 emit then
+ 4 sleep
+ 0 until
+;
+
+: ramtest
+191 for i dup ! next
+60 20 erase
+191 for i @ emit next
+;
+
+
+\: testdrawtime
+\0 0 10 for
+\ {rect
+\    dup 127 over -
+\    over over
+\    rect.y rect.x
+\    2 +
+\    swap 1 + 7 and dup rect.color swap
+\    rect.fill
+\  end} drop
+\next drop drop
+\begin
+\  1111 emit
+\  redraw
+\0 until
+\;
+
+: show-initial-time
+{clear-display}
+reset-text
+ s"  seconds: " type initial-sec i->s type render-text cr
+\ s"  minutes: " type initial-min i->s type render-text cr
+\ s"    hours: " type initial-hour i->s type render-text cr
+\ s"    month: " type initial-mon i->s type render-text cr
+\ s" week day: " type initial-wday i->s type render-text cr
+\ s" year day: " type initial-yday i->s type render-text cr
+\ s"    year: " type initial-year i->s type render-text
+;
+
+: test-show-int
+ {clear-display}
+ reset-text
+ s" -->" type
+ 12387 i->s type
+ s" <--" type
+ render-text
+ ;
+
   
 \ \ 10000000000. 104348 33215 m*/
 

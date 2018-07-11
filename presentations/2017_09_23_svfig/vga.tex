@@ -1,0 +1,112 @@
+\documentclass[compress]{beamer}
+
+\usetheme{naked}
+\usecolortheme{dark}
+
+\usepackage{pgfpages}
+\setbeamertemplate{note page}[plain]
+\setbeamercolor{note page}{fg=black}
+%\setbeameroption{show notes on second screen}
+\setbeameroption{hide notes} % Only slides
+
+% \usepackage[utf8]{inputenc} % utf8 file encoding
+% \usepackage[UTF8]{ctex}
+
+\usepackage{listings}
+\usepackage[T1]{fontenc} % powerful pdf output encoding
+
+\title{Bit-banging VGA with the GA144}
+\date{\today}
+\author{James Bowman}
+
+\begin{document}
+
+\titlepage
+
+\emptyslide
+
+\begin{imageframe}{connector}
+\note{
+Even though it is from 1987, VGA is not quite dead.
+
+Plenty of monitors have VGA connectors today.
+
+It is an easy way to make a display -- just 5 signals.
+}
+\end{imageframe}
+
+\begin{frame}
+640x480 at 60 Hz
+
+Pixel frequency is 25.175 MHz
+\note{
+tinyvga.com has a really useful list of VGA timings.
+
+\url{http://tinyvga.com/vga-timing/640x480@60Hz}
+
+A VGA 640x480 picture is clocked at 25 MHz, so each pixel takes 40
+ns.
+This is enough time for GA144 to execute 8-32 instructions.
+}
+\end{frame}
+
+\begin{imageframe}{vga-design}
+\end{imageframe}
+
+\begin{imageframe}{DSC_3223.JPG}
+\note{
+\scriptsize
+
+More details at: \\
+\url{http://www.excamera.com/sphinx/article-ga144-vga.html}
+
+Source is at \\
+\url{https://github.com/jamesbowman/ga144tools/blob/master/src/vga.ga}
+}
+\end{imageframe}
+
+
+\begin{imageframe}{layout}
+\note{
+This is the layout on the GA144.
+
+Each purple node 500-515 produces RGB pixels and sends them south. Blue nodes 400-415 collect their outputs and pass the pixel stream into the VGA timing generators 416 and 417. The color values pass up to the analog outputs 617, 717, 713. Nodes 417 and 317 drive the two synchronization signals.
+
+}
+\end{imageframe}
+
+\begin{imageframe}{DSC_3236.JPG}
+\note{This is RAMPS}
+\end{imageframe}
+
+\begin{frame}[fragile]
+\begin{verbatim}
+( x y -- bbbbbbggggggrrrrrr )
+
+    over @p and
+      32
+    over @p and
+      32
+    2* 2* 2*
+    2* 2* 2*
+    or
+\end{verbatim}
+\note{code for CHECKER}
+\end{frame}
+
+\begin{imageframe}{DSC_3237.JPG}
+\note{CHECKER}
+\end{imageframe}
+
+\begin{imageframe}{DSC_3238.JPG}
+\note{CIRCLES}
+\end{imageframe}
+
+\begin{imageframe}{DSC_3239.JPG}
+\note{RANDOM}
+\end{imageframe}
+
+
+\emptyslide
+
+\end{document}

@@ -3,6 +3,41 @@ include(ga144.hdr)
 define(READ_FOREVER, `')
 include(708out.hdr)
 
+
+
+---------------------------- 704 ----------------------------
+@p b!
+ EAST
+
+: main
+ \@b
+ @p a!
+  read-byte
+  @p push
+  18
+  @+ !b unext
+ jump main
+: read-byte
+   - push
+   call 705.out0
+   call 705.out0
+   call 705.out0
+   call 705.out0
+   call 705.out0
+   call 705.out0
+   pop @p push \ return addr
+   EAST
+   @p push
+   17  \ loop counter
+    jump 705.oloop \   call 705.24o
+   dup drop
+   call 705.setup
+   @p - !
+   0
+   call 705.in8
+   !
+   jump 705.again
+
 ---------------------------- 705 ----------------------------
 \ See block 1428 for ROM definitions
 \ For usage notes:
@@ -24,12 +59,17 @@ include(romSPI.hdr)
       eval(`0x03 << 10')    \ read
     @p a! @
       SOUTH
+    -if read-word
+     jump WEST
+: setup
+       over over over
+       over over over @p
+       EAST
+       a! ;
+: read-word
     call 24o
-    dup push
-    over over over
-    over over over @p
-      EAST
-    a! call in8
+    call setup
+    call in8
     pop !
     dup !
     @p and push
@@ -65,8 +105,6 @@ include(romSPI.hdr)
     2* next oloop
     drop ;
 
-    .
-
 : in8
     dup dup or @p
       7
@@ -77,13 +115,18 @@ include(romSPI.hdr)
       17
 : inloop
     push !b !b
-    pop @b -if got0
+    pop @b
+    -if got0
     drop - 2*
     - next inloop
     ;
 : got0
-    drop 2* next inloop
+    drop 2*
+    next inloop
     ;
+: out0
+  dup !b over
+  !b ;
 
 ---------------------------- 506 ----------------------------
 \ attr: render color 0 .3 .3
@@ -96,7 +139,7 @@ include(romSPI.hdr)
                             \ fetch byte address 0-383
                             \ set A to bank
                             \ o to offset 0-63
-    2/ dup 2/
+    dup 2/
     2/ 2/ 2/
     2/ 2/ call tab
       WEST                  \ 3 bank nodes
@@ -142,6 +185,18 @@ include(romSPI.hdr)
       @p a! . .
     ! @b ! ;
 
+: erase
+    @b push @b
+: loop
+    dup call addr
+    @p ! ! @p
+      @p a! dup
+      or !
+    ! @p . +
+    1
+    next loop
+   ;
+
 \ The three banks for the RAM
 ---------------------------- 505 ----------------------------
 \ attr: render color .3 .3 0
@@ -170,7 +225,16 @@ include(romSPI.hdr)
         SOUTH
     b!
 : again
-    @ @
+    @ -if read-code
+      @
+      @p !b 
+         @p \call 606.-!
+      !b
+      @p !b
+         call 606.DORETURN
+      jump again
+: read-code
+    @
     dup @p push
       9
     2* unext

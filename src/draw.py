@@ -9,7 +9,6 @@ class Viz:
 
     def rect(self, x, y, w, h):
         ctx = self.ctx
-
         ctx.move_to(x, y)
         ctx.line_to(x + w, y)
         ctx.line_to(x + w, y + h)
@@ -55,10 +54,30 @@ class Viz:
         ctx.show_text(label)
         ctx.restore()
 
+    def render_color(self, r, c, label, *rgb):
+        rgb = (float(c) for c in rgb)
+        self.ctx.set_source_rgba(*rgb)
+        self.cell(r, c, label, 1.0)
+
     def render_recite(self, r, c, label, src, dst):
         self.render_wire(r, c, label, src, dst, 16)
 
+    def io_direction(self, r, c):
+        if c == 0:
+            return 'WEST'
+        if c == 17:
+            return 'EAST'
+        if r == 0:
+            return 'NORTH'
+        if r == 7:
+            return 'SOUTH'
+        assert 0, 'unknown IO direction'
     def render_wire(self, r, c, label, src, dst, width = 6):
+        if '_' in dst:
+            (p1,p2) = dst.split('_')
+            self.render_wire(r, c, "",    src, p1, width)
+            self.render_wire(r, c, label, src, p2, width)
+            return
         ctx = self.ctx
         (x, y) = self.xy(r, c)
         (w, h) = (55, 70)
@@ -70,22 +89,25 @@ class Viz:
         (ex,ey) = local(1.1, .5)
         (sx,sy) = local(.5, 1.1)
         (cx,cy) = local(.5, .5)
-
         at = {
             'NORTH' : (nx,ny),
             'SOUTH' : (sx,sy),
             'EAST' : (ex,ey),
             'WEST' : (wx,wy)}
+        if dst == 'io':
+            dst = self.io_direction(r, c)
+        assert src in at, "Bad src %s" % src
+        assert dst in at, "Bad dst %s" % dst
+        if src in at and dst in at:
+            ctx.save()
+            # ctx.set_source_rgb(.8, .3, .1)
+            ctx.set_source_rgb(.2, .3, .0)
+            ctx.set_line_width(width)
 
-        ctx.save()
-        # ctx.set_source_rgb(.8, .3, .1)
-        ctx.set_source_rgb(.2, .3, .0)
-        ctx.set_line_width(width)
-
-        ctx.move_to(*at[src])
-        ctx.curve_to(cx, cy, cx, cy, *at[dst])
-        ctx.stroke()
-        ctx.restore()
+            ctx.move_to(*at[src])
+            ctx.curve_to(cx, cy, cx, cy, *at[dst])
+            ctx.stroke()
+            ctx.restore()
 
         self.label(r, c, label, 0.6)
 

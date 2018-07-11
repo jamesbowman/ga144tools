@@ -5,18 +5,17 @@ include(708out.hdr)
 \ relevant output pins:
 
 \ GND     J27.1
-\ 709.ao  J27.2
 \ 713.ao  J27.5     blue
 \ 717.ao  J27.7     red
 
 \ 617.ao  J21.1     green
-\             2
 \ 517.17  J21.3     
-\ 417.17  J21.4     HSYNC (yellow)
-\ 317.17  J21.5     VSYNC (red)
+\ 417.17  J21.4     HSYNC (white)
+\ 317.17  J21.5     VSYNC (yellow)
 \ 117.ao  J21.7
 
 define(WIRE_64DIV, `
+\ attr: render wire $1 $2
     @p a! @p
         $1
         $2
@@ -27,6 +26,7 @@ define(WIRE_64DIV, `
     2/ !b jump again')
 
 define(DAC, `
+\ attr: render color .3 .3 0
       @p a!
         $1
       @p b!
@@ -37,17 +37,6 @@ define(DAC, `
       @ 2* 2*
       2* over or
       !b jump again')
-
----------------------------- 608 ----------------------------
-    @p a! @p @p
-        NORTH
-        1
-        1
-    over over . +
-: cold
-    dup !
-: again
-    jump again
 
 ---------------------------- 717 ----------------------------
 DAC(WEST)
@@ -125,7 +114,7 @@ WIRE(SOUTH, EAST_WEST)
       . . @ .
       . . !b .
       . . . .
-      . next display
+      . . next display
     dup or !b
 
     @p call delay
@@ -183,6 +172,7 @@ WIRE(NORTH, io)
 \ CONVEYOR(N) carries N words from WEST then a single word
 \ from NORTH.
 define(CONVEYOR, `
+\ attr: render color 0 .2 .4
     @p b!
       EAST
 : again
@@ -244,85 +234,126 @@ CONVEYOR(1)
 ---------------------------- 400 ----------------------------
 WIRE(NORTH, EAST)
 
-define(GREEN, `
-    @p @p @p
-      0xffff
-      0xffff
-      0xffff
-')
+define(RGB, `($2|($1<<6)|($3<<12))')
+
+\ These generators have signature ( y x -- y x brg )
+\ brg is an 18-bit color, 6 bits per channel.
 
 define(RAMPS, `
-    call x
-    call y
-    +
-    2* 2* 2*
-    2* 2* 2*
-    dup dup
-')
-define(CHECKER, `
-    call t
-    dup call x
-    . +
-    over call y
-    . +
-
-    or @p and
-      64
-    if iszero
-    @p @p
-      0xffff
-      0
-    call x
-    2* 2* 2*
-    2* 2*
+    over 2/ 2/       
+    2/ 2/
+    over              
+    2/ 2/ 2/
+    2/ 2/ 2/ @p
+      3                 
+    and
+    2* dup 2* +        
+    push next rr
     jump done
-: iszero
-    call y
-    2* 2* 2*
-    2* 2* 2*
-    @p @p
-      0xffff
-      0
+: rr
+    2* unext
 : done
 ')
 
-define(CIRCLE, `
-    call x
-    call y
-    a! @p @p
+define(CHECKER, `
+    over @p and
+      32
+    over @p and
+      32
+    2* 2* 2*
+    2* 2* 2*
+    or
+')
+
+define(CIRCLES, `
+    jump fwd
+: osq
+    @p and
+      63
+    @p . +
+        -32
+    -if sq
+    - @p . +
+      1
+: sq
+    dup a! @p @p
       0
       17
     push
-    +* unext a
-    @p . +
-      -(10**2)
-    -if iszero
-    @p @p @p
-      0xffff
-      0
-      0x3333
-    jump done
-: iszero
-    @p @p @p
-      0x5555
-      0xffff
-      0
-: done
+    +* unext . .
+    drop drop a ;
+
+: fwd
+    over
+    call osq
+    over
+    call osq
+    . +
+    2/ 2/ 2/
+    2/ 2/ 2/
+    2/ a! @
 ')
 
-define(BODY, CHECKER)
+define(RANDOM, `
+    jump fwd
+: hash
+    dup 2* 2*
+    2* 2* 2*
+    2* 2* 2*
+    2* 2* or
 
-\   @p push
-\     224       \ 3 nodes: 35, 4 nodes: 48, 16 nodes 224
-\   unext
+    dup 2/ 2/
+    2/ 2/ 2/
+    2/ 2/ or
+
+    dup 2* 2*
+    2* 2* or ;
+: fwd
+    over
+    2/ 2/ 2/
+    call hash
+    over
+    2/ 2/ 2/
+    or call hash
+  ')
+
+define(BODY, RANDOM)
 
 define(PIXEL_GEN, `
 ---------------------------- $1 ----------------------------
+\ attr: render color .4 0 .2
     @p b!
       $2
+    @p @p
+      0
+      $3
 : again
     BODY
+    !b @p . +
+      16
+    dup @p . +
+      -640
+    -if wrap
+    drop jump again
+: wrap
+    over or or
+    over
+    @p . +
+      1
+    dup @p . +
+      -480
+    -if wrapy
+    drop over
+    jump again
+: wrapy
+    over or or
+    over jump again
 
+: channel
+    @p and ;
+      0xfc00
+
+: rgb
     \ ( r g b ), now reformat to 18-bit BRG
     \ b: msb 15 to 17
     \ g: msb 15 to 5
@@ -344,52 +375,6 @@ define(PIXEL_GEN, `
     2/ 2/ 2/
     2/ pop pop
     or or
-
-    !b call bump
-    jump again
-
-: channel
-    @p and ;
-      0xfc00
-
-: bump
-    call x
-    @p . +
-      16
-    dup @p . +
-      -640
-    -if bumpy
-    drop
-: storex
-    @p drop !p ;
-: x
-    @p ;
-      $3
-    
-: bumpy
-    call storex
-    call y
-    @p . +
-      1
-    dup @p . +
-      -480
-    -if bumpt
-    drop
-: storey
-    @p drop !p ;
-: y
-    @p ;
-      0
-: bumpt
-    call storey
-    call t
-    @p . +
-      1
-    @p drop !p ;
-: t
-    @p ;
-      0
-
 ')
 
 PIXEL_GEN(500, SOUTH, 15)
@@ -408,31 +393,3 @@ PIXEL_GEN(512, SOUTH, 3)
 PIXEL_GEN(513, SOUTH, 2)
 PIXEL_GEN(514, SOUTH, 1)
 PIXEL_GEN(515, SOUTH, 0)
-
----------------------------- 300 ----------------------------
-: wave
-   call linUp
-   call linDn   
-   jump wave
-
-: linUp
-   dup or @p
-     0xFE
-: uploop
-   dup @p or
-     0x155
-   !b @p . + 
-     2
-   next uploop
-   ;
-
-: linDn   
-   @p
-     0xFE
-: downloop
-   dup @p or
-     0x155
-   !b @p . +
-     -2
-   next downloop
-   ;

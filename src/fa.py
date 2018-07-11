@@ -3,6 +3,7 @@ import ga144
 import array
 import copy
 import re
+import time
 from subprocess import Popen, PIPE
 
 class Node(ga144.Node):
@@ -63,14 +64,27 @@ class Program:
             sbits = [x << (7 - (i % 8)) for i,x in enumerate(bits)]
             bytes = [sum(sbits[i:i+8]) for i in range(0, len(sbits), 8)]
             wl = len(pp) - 1
-            assert 0 <= wl < 64
-            ab = array.array('B', [(0xff & flags) | wl] + bytes).tostring()
+            if pp.datablock:
+                size=[]
+            else:
+                assert 0 <= wl < 64
+                size=[(0xff & flags) | wl]
+            ab = array.array('B', size + bytes).tostring()
             return ab.ljust((len(ab) + 63) & ~63, chr(0xff))
 
         s = [bytecode(self.s[f]) for f in sorted(self.s)]
         padsize = (len(s) + 4095) & ~4095
         s = "".join(s).ljust(padsize, chr(0xff))
         return s
+
+class Block(list):
+    def __init__(self, obj=None, datablock=None):
+        super( Block, self ).__init__( obj or [] )
+        self.datablock=False
+        if type(obj) is Block:
+            self.datablock = obj.datablock
+        if datablock is not None:
+            self.datablock = datablock
 
 def cleanup(s):
     for l in s:
@@ -81,6 +95,17 @@ def cleanup(s):
             l = l[:l.index('(')]
         if l:
             yield l
+
+def tokenize(s):
+    tokens = []
+    while s:
+        b, m, s = s.partition('s" ')
+        tokens.extend([w.lower() for w in b.split()])
+        if m == 's" ':
+            tokens.append('s"')
+            ss, _, s =  s.partition('"')
+            tokens.append(ss)
+    return tokens
 
 if __name__ == '__main__':
     # Pick up fixed symbols from nt.ga node 605
@@ -93,7 +118,9 @@ if __name__ == '__main__':
     symbols = copy.copy(g.node['605'].symbols)
     symbols.update(g.node['606'].symbols)
     # print "\n".join(sorted(symbols))
-
+    now = time.localtime()
+    time_words = { "initial-" + x : str( now.__getattribute__( "tm_" + x) )
+                   for x in [ "sec", "min", "hour", "mon", "wday", "yday", "year" ] }
     n = Node('605')
     n.chip = g
     prg = Program()
@@ -102,7 +129,7 @@ if __name__ == '__main__':
     def lst(s):
         listing.write(s + "\n")
 
-    c = []
+    c = Block()
     def process_code(c):
         n.symbols = symbols
         n.listing = []
@@ -110,7 +137,11 @@ if __name__ == '__main__':
 
         lst("(fragment %d)" % prg.org)
         lst("\n".join(n.listing[1:]))
-        pp = n.pump(None)
+        if c.datablock:
+            pp = Block(map(int, c), True)
+        else:
+            pp = Block(n.pump(None))
+
         bytesize = ((8 + 18 * len(pp) + 7) / 8)
         lst("%d bytes (%d words)\n" % (bytesize, len(pp)))
         return pp
@@ -126,32 +157,49 @@ if __name__ == '__main__':
             assert kind == "CODE"
             symbols["_" + blockname] = prg.org
             lst("CODE _%s" % blockname)
-            prg.append(process_code(c[1:]), flags)
+            x = process_code(Block(c[1:]))
+            prg.append(x, flags)
 
     for l in cleanup(p1.stdout):
         if '%FORTHLIKE%' in l:
             break
         if l.startswith("CODE") and c:
             code(c)
-            c = []
+            c = Block()
         c.append(l)
     code(c)
 
     # From here on code uses the forth-like syntax
     cs = []
-    c = []
+    fs = []
+    c = Block()
     def newblock(c, flags = 0):
         if c:
             prg.append(process_code(c), flags)
-        return []
+        return Block()
     HERE = 0
     variables = {}
+    _get_third=["call -!",
+                "a pop pop",
+                "pop dup a!",
+                "push push push",
+                "a over a!" ]
     compilable = {
-        "i": [
+        "DO_i": [
             "call -!",
             "pop pop over",
             "over push push",
             "over - . +" ],
+        "FOR_i": [
+            "call -!",
+            "pop dup push"],
+        "FOR-FOR_j": [
+            "call -!",
+            "pop pop over",
+            "over push push"],
+        "FOR-DO_j": _get_third,
+        "FOR-FOR-FOR_k": _get_third,
+        # TODO: other FOR/DO loop combinations
         ">r": [
             "call TO_R",
             "@+" ],
@@ -161,7 +209,8 @@ if __name__ == '__main__':
             "  @+ !p", ],
     }
     for l in cleanup(p1.stdout):
-        ww = [w.lower() for w in l.split()]
+        ww = tokenize(l)
+
         if ww[0] == "variable":
             variables[ww[1]] = HERE
             HERE += 2
@@ -173,8 +222,22 @@ if __name__ == '__main__':
             lst(": %s" % defining)
             symbols["_" + defining] = prg.org
             ww = ww[2:]
-        for w in ww:
-            if re.match("^-?[0-9](x[[0-9a-f]+|[0-9]*)\.?$", w):
+
+        ww_iter = iter(zip(ww, ww[1:]+[None]))
+        for w, next_w in ww_iter:
+            if next_w == "allot":
+                HERE += int(w)
+                next(ww_iter)
+            elif next_w == ",":
+                c.extend([w])
+                next(ww_iter)
+            elif w == 's"':
+                s = next_w
+                for char in reversed(s):
+                    c.extend(["@p call LIT", str(ord(char))]) #TODO: can overflow words
+                c.extend(["@p call LIT", str(len(s)-1)])
+                next(ww_iter)
+            elif re.match("^-?[0-9](x[[0-9a-f]+|[0-9]*)\.?$", w):
                 if w.endswith('.'):
                     i = int(w[:-1], 0)
                     h = (i >> 18) & 0x3ffff
@@ -202,12 +265,14 @@ if __name__ == '__main__':
                 cs.append(prg.org)
 
             elif w == "for":
+                fs = ["for"] + fs
                 cs.append((prg.org, len(c) + 2))
                 c.extend(["push @+", "@p call GO", "0x3ffff"])
                 c = newblock(c)
                 prg.resolve(cs.pop())
                 cs.append(prg.org)
             elif w == "do":
+                fs = ["do"] + fs
                 cs.append((prg.org, len(c) + 4))
                 c.extend(["- @+ dup", "push . + ", "push @+", "@p call GO", "0x3ffff"])
                 c = newblock(c)
@@ -252,7 +317,7 @@ if __name__ == '__main__':
                 begin = cs.pop()
                 if begin == prg.org and len(c) < 20:
                     cs.append((prg.org, len(c) + 8))
-                    c = ["a!", "jump begin2", ": begin", "@+", ": begin2"] + c
+                    c = Block(["a!", "jump begin2", ": begin", "@+", ": begin2"] + c)
                     c.extend([
                       "if begin",
                       "@+",
@@ -275,7 +340,7 @@ if __name__ == '__main__':
                 begin = cs.pop()
                 if begin == prg.org and len(c) < 20:
                     cs.append((prg.org, len(c) + 6))
-                    c = ["a! jump main", ": main"] + c
+                    c = Block( ["a! jump main", ": main"] + c )
                     c.extend([
                       "next main",
                       "@p call GO",
@@ -293,10 +358,32 @@ if __name__ == '__main__':
                       ])
                 c = newblock(c)
                 prg.resolve(cs.pop())
+                fs.pop(0)
                 if w == "loop":
                     c.extend(["pop drop"])
+            elif w == "'" or w == "'f":
+                word = next(ww_iter)[0]
+                if word in variables:
+                    addr = variables[word]
+                else:
+                    addr = symbols['_' + word]
+                if w == "'f":
+                    addr = addr<<6
+                c.extend(["@p call LIT", str(addr)])
+            elif w == "data-block":
+                c.datablock=True
+            elif w in ("i", "j", "k"):
+                looptype = reversed(fs[:("i", "j", "k").index(w)+1])
+                k = "-".join(looptype).upper()+"_"+w
+                if k in compilable:
+                    c.extend(compilable[k])
+                else:
+                    print "Error: {} is unimplemented in loops: {}".format( w, " > ".join(reversed(looptype)))
+                    exit(0)
             elif w in compilable:
                 c.extend(compilable[w])
+            elif w in time_words:
+                c.extend(["@p call LIT", time_words[w]])
             else:
                 (flags, code) = prg.s[symbols["_" + w]]
                 if flags & 0x100:
@@ -312,7 +399,7 @@ if __name__ == '__main__':
                     c = newblock(c)
                     if cs:
                         prg.resolve(cs.pop())
-            if len(c) > 54:
+            if len(c) > 54 and not c.datablock:
                 cs.append((prg.org, len(c) + 1))
                 c.extend([
                   "@p call GO",
@@ -325,6 +412,9 @@ if __name__ == '__main__':
 
     # Put a copy of the 'boot' fragment at zero
     prg.s[0] = prg.s[symbols['_boot']]
-    print max(prg.s), 'fragments'
-
+    f = open("flash.el", "w")
+    for n, c in prg.s.items():
+        f.write("(_fragment {} {} {})\n".format( n, (0xff & c[0]) | len(c[1]), " ".join( map(str, c[1] ))))
+    f.write( "(_boot {})\n".format( symbols['_boot'] ) )
+    f.close()
     open("image", "wb").write(prg.binary())
