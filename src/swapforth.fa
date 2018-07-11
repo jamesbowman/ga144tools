@@ -753,27 +753,28 @@ black @ color !
 \ render contents of `line-buff' at `line'
 \ must be called from update mode
 6 for \ y
- line @ 8 * 6 I - + dup set-row send-primitives
- 0 ( coord
- 20 for \ char
+  line @ 8 * 6 I - + dup set-row send-primitives
+  0 \ coord
+  20 for \ char
     20 I - line-buf + @
     dup if
+      dup 7 * 6 J - + 
+      'f font-5x7 + @flash \ [coord char font]
       4 for \ x
-      \ TODO: reorganize font data to minimize reads
-         dup 5 * 4 I - +
-          'f font-5x7 + @flash \ inline @font
-         6 K - lshift 0x80 and if
-           over black pixel
-         then
-         swap 1 + swap
-        next
+        dup 4 I - lshift 0x20 and \ [coord char font pixel?]
+        if
+          >r over black pixel r>
+        then
+        >r swap 1 + swap r>
+      next
+      drop \ font
     else
-        swap 5 + swap
+      swap 5 + swap
     then
       drop 1 +
   next
-   drop (coord)
-   end-row
+  drop \ coord
+  end-row
 next
 ;
 
