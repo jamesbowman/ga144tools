@@ -1,6 +1,7 @@
 : font-5x7
     \ "5x7 LCD Compatible Font" from http://www.noritake-itron.com/Softview/fontspic.htm
 data-block
+\ these values are from the output of convert_font.py
 0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,
 0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,
 0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,
