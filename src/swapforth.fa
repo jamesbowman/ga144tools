@@ -763,7 +763,7 @@ black @ color !
     dup if
       7 * 6 J - +
       'f font-5x7 + @flash \ inlined @font   [coord font]
-      4 for \ x
+      \ 4 for \ x   unrolled loop
         dup
         0x20 and \ [coord font pixel?]
         if
@@ -771,8 +771,13 @@ black @ color !
           2* 2* 2* 2* 0x20002 or >604 \ inlined black-pixel
         then
         2* swap 1+ swap
-      next
-      drop \ font
+      \ next
+        dup 0x20 and if over 2* 2* 2* 2* 0x20002 or >604 then 2* swap 1+ swap
+        dup 0x20 and if over 2* 2* 2* 2* 0x20002 or >604 then 2* swap 1+ swap
+        dup 0x20 and if over 2* 2* 2* 2* 0x20002 or >604 then 2* swap 1+ swap
+        dup 0x20 and if over 2* 2* 2* 2* 0x20002 or >604 then
+        drop \ font
+        1+
     else
       drop 5 +
     then
