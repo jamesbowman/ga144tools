@@ -702,6 +702,9 @@ m2 @ rect.fill 0x20000 or m2 ! ;
 \  |1|3b color|000|7b coord|0010|
  14 lshift swap 4 lshift 0x20002 or or >604 ;
 
+: black-pixel ( coord - )
+ 2* 2* 2* 2* 0x20002 or >604 ;
+
 : {clear-display}
 {update 7 >604 update} ;
 
@@ -763,7 +766,7 @@ black @ color !
       4 for \ x
         dup 4 I - lshift 0x20 and \ [coord char font pixel?]
         if
-          >r over black pixel r>
+          >r over black-pixel r>
         then
         >r swap 1 + swap r>
       next
