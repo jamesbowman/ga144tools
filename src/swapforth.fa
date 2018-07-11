@@ -756,25 +756,27 @@ black @ color !
 \ render contents of `line-buff' at `line'
 \ must be called from update mode
 6 for \ y
-  line @ 8 * 6 I - + dup set-row send-primitives
+  line @ 2* 2* 2* 6 I - + dup set-row send-primitives
   0 \ coord
   20 for \ char
     20 I - line-buf + @
     dup if
-      dup 7 * 6 J - + 
-      'f font-5x7 + @flash \ [coord char font]
+      7 * 6 J - +
+      'f font-5x7 + @flash \ inlined @font   [coord font]
       4 for \ x
-        dup 4 I - lshift 0x20 and \ [coord char font pixel?]
+        dup
+        0x20 and \ [coord font pixel?]
         if
-          >r over black-pixel r>
+          over
+          2* 2* 2* 2* 0x20002 or >604 \ inlined black-pixel
         then
-        >r swap 1 + swap r>
+        2* swap 1+ swap
       next
       drop \ font
     else
-      swap 5 + swap
+      drop 5 +
     then
-      drop 1 +
+    1+
   next
   drop \ coord
   end-row
